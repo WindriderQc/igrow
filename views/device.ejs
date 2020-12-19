@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('partials/head') %> 
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
+
+
+
+    <script type="text/javascript" src="js/iot.js"></script>
+  
+</head>
+
+
+<body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">    <%- include('partials/nav') %>  </nav>
+
+      
+
+    <div class="content-wrapper">
+        <div class="container-fluid bg-3">
+
+            <select class="mx-2 form-control" id="devices_select" onchange=updateSelected()></select>
+
+            <div class="row pl-1 mb-2">
+
+                <div class="col-sm-4 px-1">
+                    <div class='card shadow'>
+                        
+                        <a href="#collapseOutput" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseOutput">
+                            <p class="m-0 font-weight-bold text-secondary">Outputs</p>
+                        </a>
+                        <div class="collapse show" id="collapseOutput">
+                         
+                            <form>
+                                <% ioList.forEach(item =>{ %>   
+                                     <%- include('partials/ioCtrl', {item:item}) %>       
+                                <% }) %>
+                            </form>
+                                  
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-5 px-1">
+                    <div class="card shadow">
+                        <a href="#collapseWater" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseWater">
+                            <p class="m-0 font-weight-bold text-secondary">Watering</p>
+                        </a>
+
+                        <div class="collapse show" id="collapseWater">
+                            <div class="card-body">
+<script>
+    
+        
+async function postData(url = '', data='') 
+{  
+    let option = {
+      method: 'POST',
+      headers: {
+         
+          'Content-type': 'application/x-www-form-urlencoded',  
+          'Content-length': data.length   
+      },
+      body : data //JSON.stringify(data)
+    }
+    console.log (option)
+   // const response = await fetch(url, option)
+   fetch(url, option)
+    .then(response => response.text())
+    .then(body => {
+        try {
+            return JSON.parse(body);
+        } catch {
+            throw Error(body);
+        }
+    })
+    .then(console.log)
+    .catch(console.error)
+}
+/*
+There are a few 'gotchas' in the ESP8266WebServer's implementation. I have found the body shows up in the
+server.arg("plain")
+but only if the class cannot find any key value pairs. The ESP8266WebServer will look for an '=' and only if it cannot find one will it put the body in the "plain" arg.
+This arg will contain the full body so you will have to parse the JSON yourself. I have found ArduinoJson to be a very easy to use library to do so.
+Short example:
+void handleRequest() {  
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
+  root.printTo(Serial);
+}
+On a sidenote. If you are testing with a POSTMAN like tool, do not forget to set the 'Content-length'. ESP8266WebServer will treat your body as empty (or of a different length) if it does not correspond with this header value.
+Hope this answers your question.*/
+async function waterburst()
+{
+    console.log ('waterburst post received, sending relay request:')
+  try {
+        postData("http://192.168.0.212/RELAY", 'state=ON')
+      
+        Tools.sleep(3000)
+        postData("http://192.168.0.212/RELAY", 'state=OFF')
+  }
+  catch (err) {
+      console.error(err)
+  }
+}
+   /*.then(data => { console.log(data) })*/
+</script>
+                            <form  >
+                                <input type="button" class="btn btn-primary" onclick="waterburst()" value="Water Burst">
+                            </form>
+
+                            <p>Relay Actions:</p>
+                            <form action="http://192.168.0.212/RELAY" method="post"> 
+                                <input type="submit" class="btn btn-primary" value="Toggle Relay">
+                                <input type="hidden" name="state" value="TOGGLE">
+                            </form>
+                            <form action="http://192.168.0.212/RELAY" method="post"> 
+                                <input type="submit" class="btn btn-primary" value="ON">
+                                <input type="hidden" name="state" value="ON">
+                            </form>
+                            <form action="http://192.168.0.212/RELAY" method="post"> 
+                                <input type="submit" class="btn btn-primary" value="OFF">
+                                <input type="hidden" name="state" value="OFF">
+                            </form>                            
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-3 px-1">
+                    <div class="card shadow ">
+                        <a href="#collapseWifi" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseWifi">
+                            <p class="m-0 font-weight-bold text-secondary">Wifi Signal Strength</p>
+                        </a>
+
+                        <div class="collapse show my-2" id="collapseWifi">
+                                                           
+                                <%- include('partials/graph/rssGauge', { name: "Wifi", defaultValue: -100, units: "dbA",  smWidth: 12, domID: "ESP_35030rss_id",  divHeight: "248px" }); %>
+                           
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="row pl-1 mb-2">
+
+                <div class="col-sm-4 px-1">
+                    <div class='card shadow'>
+                        <a href="#collapseTimerz" class="d-block card-header py-3 text-center" data-toggle="collapse"
+                            role="button" aria-expanded="true" aria-controls="collapseTimerz">
+                            <p class="m-0 font-weight-bold text-secondary">Timerz</p>
+                        </a>
+
+                        <div class="collapse show" id="collapseTimerz">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <form class='form-inline' action="/set_alarm" method="post" enctype="application/json">
+                                        <input type="hidden" id="tStart" name="tStart" value="">
+                                        <input type="hidden" id="tStop" name="tStop" value="">
+
+                                        <div class='row mx-4 mb-3'>
+
+                                            <select class="form-control ml-2" id="io_id" name="io_id">
+                                                <option selected="selected">13</option>
+                                                <option>21</option>
+                                                <option>32</option>
+                                                <option>4</option>
+                                                <option>5</option>
+                                                <option>6</option>
+                                            </select>
+                                        </div>
+
+                                        <div class='row mx-1'>
+                                            <div class="form-group mx-1">
+                                                <div class="input-group date" id="datetimepickerStart"
+                                                    data-target-input="nearest">
+                                                    <input type="text" class="form-control datetimepicker-input  "
+                                                        data-target="#datetimepickerStart" />
+                                                    <div class="input-group-append" data-target="#datetimepickerStart"
+                                                        data-toggle="datetimepicker">
+                                                        <div class="input-group-text "><i class="fa fa-clock-o"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group mx-1">
+                                                <div class="input-group date" id="datetimepickerStop" data-target-input="nearest">
+                                                    <input type="text" class="form-control datetimepicker-input " data-target="#datetimepickerStop" />
+                                                    <div class="input-group-append" data-target="#datetimepickerStop" data-toggle="datetimepicker">
+                                                        <div class="input-group-text"><i class="fa fa-clock-o"></i></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group mx-1">
+                                                <button type="submit" class="btn btn-success " onclick="getValue()">Set</button>
+                                            </div>
+                                        </div>
+                                    </form>
+
+                                    <div class='row mx-1'>
+                                        <div class='card-body'>
+                                            <h5 class="card-title text-center">Alarm List</h5>
+                                            <small>
+
+                                                <table class="table  table-sm" id='alarmTable'>
+                                                    <thead class="thead-light text-center">
+                                                        <tr>
+                                                            <th scope="col">Esp32</th>
+                                                            <th scope="col" style="width:50px">#IO</th>
+                                                            <th scope="col">Start</th>
+                                                            <th scope="col">Stop</th>
+                                                        </tr>
+                                                    </thead>
+                                                </table>
+                                            </small>
+                                        </div>
+                                    </div>
+
+
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-4 px-1">
+                    <div class="card shadow">
+
+                        <a href="#collapseFarmCam" class="d-block card-header py-3 text-center" data-toggle="collapse"
+                            role="button" aria-expanded="true" aria-controls="collapseFarmCam">
+                            <p class="m-0 font-weight-bold text-secondary">Live Cam</p>
+                        </a>
+                        <div class="collapse show" id="collapseFarmCam">
+                            <%- include('partials/camera', {server: "192.168.0.33", name: "babypi", smWidth: 12}); %>      
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-sm-4 px-1">
+                    <div class="card shadow">
+                        <a href="#collapseStats" class="d-block card-header py-3 text-center" data-toggle="collapse"
+                            role="button" aria-expanded="true" aria-controls="collapseStats">
+                            <p class="m-0 font-weight-bold text-secondary">Stats</p>
+                        </a>
+
+                        <div class="collapse show" id="collapseStats">
+                            <div class="card-body">
+                                <div class='form-text'>JSON test</div>
+                            </div>
+                            <div class="card-body">
+                                <pre><div class='form-text' id='test'>xoxo</div></pre>
+<script>
+    const people = { "name": "Nat", "age": 39, "star": 1000000 }
+    const str = JSON.stringify(people, null, '\t') //  the null, '\t' is to prettyfy the string
+    console.log(str)
+    document.getElementById('test').innerHTML = str
+</script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+
+            <div class='row'>
+                 <p id='latestData'>data</p>
+            </div>
+
+
+
+<script>
+$(() => {
+    $('#datetimepickerStart').datetimepicker({
+        defaultDate: moment({ hour: 08, minute: 30, seconds: 00 }),
+        format: 'HH:mm:ss'
+    })
+    $('#datetimepickerStop').datetimepicker({
+        defaultDate: moment({ hour: 22, minute: 30, seconds: 30 }),
+        format: 'HH:mm:ss'
+    })
+})
+
+
+function getValue() {
+    var tStart = moment($('#datetimepickerStart').datetimepicker('viewDate')).format('YYYY-MM-DD HH:mm:ss')
+    console.log(tStart)
+    document.getElementById("tStart").value = tStart;
+    var tStop = moment($('#datetimepickerStop').datetimepicker('viewDate')).format('YYYY-MM-DD HH:mm:ss')
+    console.log(tStop)
+    document.getElementById("tStop").value = tStop;
+}
+
+const mqttlogin = JSON.parse('<%- mqttinfo %>')
+const list = <%-JSON.stringify(devices)%>
+console.log(list)
+let iot = new Iot(mqttlogin, list )
+iot.setDevicesListOnSelect("devices_select", mqttSubscription)
+//iot.selectedDevice = $("#devices_select>option:selected").text()
+//console.log(iot.selectedDevice)
+
+function mqttSubscription() 
+{
+    iot.mqClient.subscribe("esp32/alive/#")
+    iot.mqClient.subscribe("esp32/alarmList")
+    //client.subscribe("esp32/ios/" + selectedEsp)
+    iot.mqClient.publish('esp32/command/getAlarms','')  //  TODO: comment choisir le ESP?
+}
+
+function updateSelected() 
+{ 
+    iot.selectedDevice = $("#devices_select>option:selected").text()
+    updateHand(-100)
+}
+
+function sendSetIO(item) 
+{
+    const topic = 'esp32/' + iot.selectedDevice + '/io/' + item.state;      // ESP_35030
+    console.log('Setting IO: ' + topic + ' : ' +  item.io )
+    //client.publish(msg, moment().format('YYYY-MM-DD HH:mm:ss'))
+    iot.mqClient.publish(topic, item.io  )
+}
+
+iot.mqClient.on("message", (topic, payload) => {
+    if(topic == 'esp32/alive/' + iot.selectedDevice) 
+    { 
+        let data = JSON.parse(payload)
+        
+        //updateHand(data.wifi)
+        if (typeof data.wifi != 'undefined') {
+            document.getElementById('ESP_35030rss_id_value_id').innerHTML =  data.wifi
+        }
+      
+        document.getElementById('latestData').innerHTML = JSON.stringify(data, null, '\t') 
+    }
+    
+    else if(topic == 'esp32/alarmList') {
+        console.log('Alarm List received')
+        alarms = JSON.parse(payload)
+        console.log(alarms)
+        
+        // Find a <table> element with id="myTable":
+        var table = document.getElementById('alarmTable')
+        let i = 0
+        for (x in alarms) {
+            var row = table.insertRow(i + 1)   // Create an empty <tr> element and add it to the 1st position of the table:
+            i++
+            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+            var cell1 = row.insertCell(0)
+            var cell2 = row.insertCell(1)
+            var cell3 = row.insertCell(2)
+            var cell4 = row.insertCell(3)
+            // Add some text to the new cells:
+            cell1.innerHTML = alarms[x].espID
+            cell2.innerHTML = alarms[x].io
+            cell3.innerHTML = moment(alarms[x].tStart).format('HH:mm:ss')
+            cell4.innerHTML = moment(alarms[x].tStop).format('HH:mm:ss')    
+        }
+    }
+})  
+</script>
+
+
+ <!-- End Container  -->
+</div>
+</div>
+
+<%- include('partials/footer') %>
+</body>
+</html>

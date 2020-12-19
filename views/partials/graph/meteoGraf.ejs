@@ -1,0 +1,186 @@
+
+<script src="https://cdn.jsdelivr.net/npm/moment@latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+<canvas id="tempChart" height="400"></canvas>   
+
+
+<script>
+
+//let tempChart
+
+function newTempData(data) 
+{
+        //console.log(dat)
+        if(tempChart) 
+        {
+            //tempChart.data.labels.push(formatTime(data.time))
+            tempChart.data.labels.push(data.time)
+            const datasQty =  tempChart.data.datasets.length   
+        
+            let datas = [ data.tempBM_280, data.pressure, data.airHumid, data.tempDht ]
+        
+            if(datasQty == datas.length)  
+            {
+                for(let i=0; i<datasQty; i++ )
+                {
+                    tempChart.data.datasets[i].data.push(datas[i])
+                }
+
+
+                if(tempChart.data.datasets[0].data.length > 200)   //  TODO : const de config laid!!!
+                    graphRemoveLast(tempChart)
+                tempChart.update()  
+            } 
+            else {
+                alert('Code error', 'chart dataset and data array desyncronized.')
+            }
+
+
+        }      
+    
+}
+
+
+async function createtempChart(data) 
+{
+    //console.log(data)
+
+    const chartCanvas = document.getElementById('tempChart').getContext('2d');
+
+    var gradientRed = chartCanvas.createLinearGradient(0, 0, 0, 200);
+        gradientRed.addColorStop(0, 'rgba(250, 0, 0, 0.6)');   
+        gradientRed.addColorStop(1, 'rgba(250, 25, 25, 0)'); 
+
+    var gradientOrange = chartCanvas.createLinearGradient(0, 0, 0, 235);
+        gradientOrange.addColorStop(0, 'rgba(225, 125, 10, 1)');   
+        gradientOrange.addColorStop(1, 'rgba(225, 125, 10, 0)');           
+                
+    var gradientGray = chartCanvas.createLinearGradient(0, 0, 0, 250);
+        gradientGray.addColorStop(0, 'rgba(25,25,25,0.9)');   
+        gradientGray.addColorStop(1, 'rgba(25,25,25,0.1)');
+    
+    
+    tempChart = new Chart(chartCanvas, {
+        type: 'line',
+        data: {
+            labels: data.map(item => { return moment(item.time).format('MM-DD    HH:mm') }),  // dat.tstamp,
+            datasets: [
+                {
+                label: 'tempBM_280',   // 0
+                data: data.map(item => { return (item.tempBM_280) }),
+                spanGaps: false,
+                showLines: true,
+                fill: false,
+                radius: 0.1,
+                backgroundColor: 'rgba(225, 125, 10, 0.5)', 
+                borderColor: 'rgba(225, 125, 10, 1)',
+                borderWidth: 1,
+                yAxisID: "y-axis-temp",
+                },
+                {
+                label: 'CPUtemp',  // 2
+                data:  data.map(item => { return (item.CPUtemp) }),
+                spanGaps: false,
+                showLines: true,
+                radius: 0,
+                type: 'line',
+                fill: false,
+                backgroundColor: 'rgba(225, 125, 10, 0.5)', 
+                borderColor: 'rgba(225, 125, 10, 1)',
+                borderWidth: 1,
+                yAxisID: "y-axis-temp"
+                } ,
+                {
+                label: 'pressure',   // 3
+                data:  data.map(item => { return (item.pressure) }),
+                spanGaps: false,
+                showLines: true,
+                radius: 0,
+                type: 'line',
+                fill: true,
+                backgroundColor: gradientGray,
+                borderColor: 'rgba(25,25,25,0.9)',
+                borderWidth: 2,
+                yAxisID: "y-pressure"
+                } ,
+                {
+                label: 'Humidity',   // 3
+                data:  data.map(item => { return (item.airHumid) }),
+                spanGaps: false,
+                showLines: true,
+                radius: 0,
+                type: 'line',
+                fill: true,
+                backgroundColor: 'rgba(0, 125, 255, 0.2)',
+                borderColor: 'rgba(0, 125, 255, 1)',
+                borderWidth: 2,
+                yAxisID: "y-axis-temp"
+                },
+                {
+                label: 'Temp DHT',   // 3
+                data:  data.map(item => { return (item.tempDht) }),
+                spanGaps: false,
+                showLines: true,
+                radius: 0,
+                type: 'line',
+                fill: false,
+                backgroundColor: 'rgba(0, 125, 255, 0.2)',
+                borderColor: 'rgba(240, 125, 255, 1)',
+                borderWidth: 2,
+                yAxisID: "y-axis-temp"
+                } 
+
+            ]
+        },
+        options: { 
+           // responsive: true, 
+            title:      {
+                display: true,
+                text:    "Meteorological Conditions"
+            },
+            scales: { 
+                  yAxes: 
+                  [
+                    {
+                        id: "y-axis-temp",
+                        ticks: {
+                            suggestedMax: 60,
+                            beginAtZero: true,
+                            callback: function(value, index, values) {
+                                return value + '\°';
+                                }
+                            },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'C\°'
+                        }
+
+                    }, 
+                    {
+                        id: "y-pressure",
+                        position: 'right',
+                        ticks: {
+                            suggestedMin: 980,
+                            suggestedMax: 1050,
+                            position: 'right'
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'hPa'
+                        }
+                    }
+                  ]  
+                                            
+            }
+        }
+    });	
+
+}
+
+    
+
+
+   </script>
+
+   

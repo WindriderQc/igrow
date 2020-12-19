@@ -54,12 +54,12 @@ function validate() {
             
             <form class="form-signin" action =/users/login method="post" >
               <div class="form-label-group">
-                <input type="email" id="email" name="email" class="form-control" placeholder="Email address" required autofocus>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Email address" required autofocus value="<%=user%>">
                 <label for="email">Email address</label>
               </div>
 
               <div class="form-label-group">
-                <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Password" required value="<%=pass%>">
                 <label for="password">Password</label>
               </div>
 

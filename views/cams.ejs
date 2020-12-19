@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('partials/head') %> 
+ <!-- <link rel="stylesheet" href="css/style.css"> -->
+</head>
+
+
+<body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
+  
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">    <%- include('partials/nav') %>  </nav>
+
+<div class="content-wrapper">
+    <div class="container-fluid bg-3 text-center">  
+<!-- Begin Container  -->   
+
+            <div class="row">
+                
+                <%- include('partials/camera', {server: "192.168.0.233", name: "babypi", smWidth: 4 }); %>
+
+                <%- include('partials/camera', {server: "192.168.0.233", name: "guerrier", smWidth: 4 }); %>     
+                
+            </div>
+
+            <div class="row">
+                
+                <%- include('partials/camera', {server: "192.168.0.233", name: "keeper", smWidth: 4 }); %>     
+                          
+                <%- include('partials/camera', {server: "192.168.0.233", name: "blackpi", smWidth: 4 }); %>     
+
+            </div>
+    
+ <!-- End Container  -->
+    </div>
+</div>
+
+<%- include('partials/footer') %>
+</body>
+</html>

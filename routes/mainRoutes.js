@@ -1,9 +1,9 @@
 const router = require('express').Router()
 //const verify = require('./verifyToken')
-//const moment = require('moment')
+const moment = require('moment')
 const fetch = require('node-fetch')
 //require('dotenv').config();
-
+const dbs = require('../serverDB')
 //const mailman = require('./mailman')
 
 const bodyParser = require("body-parser")
@@ -40,21 +40,6 @@ let topAlarms = []
 
 
 
-async function loadList()
-{
-
-    const response = await fetch(apiUrl + "/heartbeats/devices") //, option)
-    const data = await response.json()
-    console.log('Refreshing devices list')
-    console.log(data)
-    devices = data
-
-}
-loadList()
-
-
-
-
 const TimeDiff = (startTime, endTime, format) => {
 
     startTime = moment(startTime, 'YYYY-MM-DD HH:mm:ss');
@@ -69,53 +54,15 @@ const TimeDiff = (startTime, endTime, format) => {
 ////   free routes
 
 router.get("/", (req, res) => {
-    res.render('partials/login');
+    res.render('partials/login', {user: process.env.API_USER, pass: process.env.API_PASS  });
 }) 
 
 router.get("/login", (req, res) => {
-    res.render('partials/login');
+    res.render('partials/login', {user: process.env.API_USER, pass: process.env.API_PASS  });
 }) 
 
 router.get("/iGrow", (req, res) => {
     res.send('Hello')
-})
-
-router.get("/register", (req, res) => {
-    res.render('partials/register');
-})
-
-router.post('/register', async (req, res) => {
-    console.log("App.post called on register page")
-    console.log(req.body)
-
-    const option = {
-        method: 'POST',
-        headers: {
-            "Content-type": "application/json"/*,
-            "Accept": "application/json",
-            "Accept-Charset": "utf-8"*/
-        },
-        body: JSON.stringify({ name: req.body.name, email: req.body.email, password: req.body.password })
-    }
-
-    //console.log(option)
-    try {
-        const rawResponse = await fetch(apiUrl + '/api/user/register', option);
-        //console.log (rawResponse)
-        const r = await rawResponse.text()
-        const result = JSON.parse(r)
-        console.log('register response: ' + r);
-        if (result.message === 'Success')
-            res.redirect('/login')
-        else {
-            // res.send(result.message)
-            res.redirect('/register')
-        }
-    }
-    catch (err) {
-        console.log(err)
-    }
-
 })
 
 
@@ -136,49 +83,6 @@ router.get('/index', redirectLogin, (req, res) => {
     res.render('index', { name: req.session.email })  //console.log(req.session)
 })
 
-router.get('/getUserList', redirectLogin, async (req, res) => {
-
-    console.log('getting users list')
-
-    let option = {
-        method: 'GET',
-        headers: {
-            'auth-token': req.session.userToken
-        }
-    }
-
-    let userlist
-
-    try {
-        const response = await fetch(apiUrl + "/api/user/", option)
-        const data = await response.text()
-        if (!data) {
-            const message = "List not found...";
-            return res.status(400).send(message);
-        } else { userlist = JSON.parse(data) }
-
-        console.log(userlist)
-        res.json( userlist );
-    }
-    catch (err) {
-        console.error(err)
-    }
-
-})
-
-router.get('/logout', redirectLogin, (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            res.send('error destroying session')
-        }
-        console.log('logout & session destroy')
-        res.clearCookie(process.env.SESS_NAME)
-        res.redirect('/login')
-    })
-})
-
-
-
 router.get('/live', (req, res) => {
     res.render('live')
 })
@@ -187,25 +91,26 @@ router.get('/cams', redirectLogin, (req, res) => {
     res.render('cams')
 })
 
-
-
-
-router.get('/device', redirectLogin, (req, res) => {
-    res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: devices })
+router.get('/device', redirectLogin, async (req, res) => {
+    const list = await dbs.getDevices()
+    res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list })
 })
-router.get('/graphs', redirectLogin, (req, res) => { 
-    res.render('graphs',{ mqttinfo: mqttinfo, devices: devices })
+router.get('/graphs', redirectLogin, async (req, res) => { 
+    const list = await dbs.getDevices()
+    res.render('graphs',{ mqttinfo: mqttinfo, devices: list })
 })
-router.get('/settings', redirectLogin, (req, res) => {
-    res.render('settings', {serverUrl: process.env.SERVER_URL})
+router.get('/settings', redirectLogin, async (req, res) => {
+    const users = await dbs.getUsers()
+    res.render('settings', {users: users})
 })
 
 router.get('/empty', (req, res) => {
     res.render('empty')
 })
 
-router.get('/iot', redirectLogin, (req, res) => {
-    res.render('iot', { mqttinfo: mqttinfo, devices: devices })
+router.get('/iot', redirectLogin, async (req, res) => {
+    const list = await dbs.getDevices()
+    res.render('iot', { mqttinfo: mqttinfo, devices: list })
 })
 
 router.get('/weather/:latlon', async (req, res) => {
@@ -250,42 +155,6 @@ router.get('/weather/:latlon', async (req, res) => {
 
 
 
-router.get('/devicesList', redirectLogin, async (req, res) => {
-
-
-    let option = {
-        method: 'GET',
-        headers: {
-            'auth-token': req.session.userToken
-        }
-    }
-
-    try {
-        const response = await fetch(apiUrl + "/api/heartbeat/devices", option)
-        const data = await response.json()
-        console.log('Devices List:')
-        console.log(data)
-        if (!data) {
-            const message = "Could not get devices list";
-            return res.status(400).send(message);
-        }
-        else {
-            devices = data
-            res.json(data)
-        }
-
-    }
-    catch (err) {
-        console.error(err)
-    }
-
-
-})
-
-
-
-
-
 router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
 
 
@@ -297,7 +166,7 @@ router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
     }
 
     try {
-        const response = await fetch(apiUrl + "/api/heartbeat/deviceLatest/" + req.params.esp, option)
+        const response = await fetch(apiUrl + "/heartbeats/deviceLatest/" + req.params.esp, option)
         const data = await response.json()
         if (!data) {
             const message = "Could not get data";
@@ -307,9 +176,6 @@ router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
 
             let now =  new moment()
             let stamp =  new moment(data[0].time).format('YYYY-MM-DD HH:mm:ss') 
-            //console.log("stamp:")
-            //console.log(stamp)
-            //console.log("diff:")
             let duration = new moment.duration(now.diff(stamp)).asHours();
      
             data[0].lastConnect = duration
@@ -377,6 +243,19 @@ router.get('/data/:options', redirectLogin, async (req, res) => {
 
 })
 
+
+router.post('/set_io', (req, res) => {
+
+    let msg = 'esp32/' + req.body.sender + '/io/' + req.body.io_id + '/' + (req.body.io_state === 'ON' ? 'on' : 'off')
+    console.log('Setting IO: ' + msg)
+    let mq = getMqtt()
+    mq.publish(msg, moment().format('YYYY-MM-DD HH:mm:ss'))
+
+  //  res.redirect("/ioCard.html?io_id=" + req.body.io_id + "&name_id=" + req.body.name_id)
+    res.redirect('/iot')
+})
+
+module.exports = router;
 
 
 /*
@@ -487,16 +366,7 @@ router.get('/getAlarms', (req, res) => {
 
 */
 
-router.post('/set_io', (req, res) => {
 
-    let msg = 'esp32/' + req.body.sender + '/io/' + req.body.io_id + '/' + (req.body.io_state === 'ON' ? 'on' : 'off')
-    console.log('Setting IO: ' + msg)
-    let mq = getMqtt()
-    mq.publish(msg, moment().format('YYYY-MM-DD HH:mm:ss'))
-
-  //  res.redirect("/ioCard.html?io_id=" + req.body.io_id + "&name_id=" + req.body.name_id)
-    res.redirect('/iot')
-})
 
 /*
 router.post('/set_alarm', async (req, res) => {
@@ -591,7 +461,7 @@ router.get('/resetdb', redirectLogin, (req, res) => {
     res.redirect('/settings', {serverUrl: process.env.SERVER_URL})
 })
 */
-module.exports = router;
+
 
 
 /* add data through post

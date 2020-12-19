@@ -5,17 +5,15 @@
    <%- include('partials/head') %> 
  
 
- <link rel="stylesheet" href="css/YBs.css">
+ <link rel="stylesheet" type="text/javascript" href="css/YBs.css">
 
- <script type="text/javascript" src="iot.js"></script>
+ <script type="text/javascript" src="js/iot.js"></script>
 </head>
 
 
 <body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
   
-  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">
-      <% include partials/nav%>
-  </nav>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">    <%- include('partials/nav') %>  </nav>
 
 <div class="content-wrapper">
     <div class="container-fluid bg-3">  
@@ -27,7 +25,7 @@
             <div class="row mt-2 col-sm-12">
 
                <%- include('partials/valueCard', {name: "ID ",                defaultValue: sender, units: "",     smWidth: 2, domID: sender+"id_id"      }); %>  
-               <%- include('partials/rssGauge',  { name: "Wifi",              defaultValue: -100,   units: " dBm", smWidth: 3, domID: sender+"rss_id",  divHeight: "120px" }); %>
+               <%- include('partials/graph/rssGauge',  { name: "Wifi",              defaultValue: -100,   units: " dBm", smWidth: 3, domID: sender+"rss_id",  divHeight: "120px" }); %>
                <%- include('partials/valueCard', { name: "CPU temperature ",  defaultValue: 0,      units: "°C",   smWidth: 2, domID: sender+"temp_id"    }); %>    
                <%- include('partials/valueCard', { name: "Battery",           defaultValue: 0,      units: "v",    smWidth: 2, domID: sender+"batt_id"    }); %>  
                <%- include('partials/valueCard', { name: "Humidity",          defaultValue: 0,      units: "%",    smWidth: 2, domID: sender+"humid_id"   }); %>  
@@ -139,12 +137,6 @@ Esp32 are listening to :</br>
        </div>
    
         
-
-
-    </div>
-</div>
-<!-- /.content-wrapper & Container-fluid  -->
-
 <script>
    
 let serv = 'http://' + window.location.hostname //let serv = 'https://' + window.location.hostname    TODO: https
@@ -250,13 +242,11 @@ iot.mqClient.on('message', (topic, payload) => {
 
 
 
-<!-- Scroll to Top Button-->
-<a class="scroll-to-top rounded" href="#page-top">
-    <i class="fa fa-angle-up"></i>
-</a>
 
-<%- include('partials/logout') %>  
-<%- include('partials/bodyScripts') %>
+ <!-- End Container  -->
+</div>
+</div>
 
+<%- include('partials/footer') %>
 </body>
 </html>

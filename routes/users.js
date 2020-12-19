@@ -8,7 +8,8 @@ const jwt = require('jsonwebtoken')
 const verify = require('./verifyToken')
 const { registerValidation, loginValidation } = require('../validation')
 
-const bodyParser = require("body-parser")
+const bodyParser = require("body-parser");
+const moment = require('moment');
 router.use(bodyParser.json({ limit: '10mb', extended: true }))
 router.use(bodyParser.urlencoded({ extended: true }))
 
@@ -109,11 +110,29 @@ router.post('/login', async (req, res) => {  console.log('login request: ' + req
         }
         //else console.log('success')
         // Create and assign a token
-        
         const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET)
         result.token = token
         result.message = "Success!"
       //  res.header("auth-token", token).send(result)
+
+        const option = {
+            method: 'PATCH',
+            headers: {
+                'auth-token': token,
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json'
+                //'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: JSON.stringify({ name: user.name, email: user.email, password: user.password, lastConnect: moment().format('YYYY-MM-DDTHH:mm:ss.SSS') })
+        }
+
+       // console.log(option)
+        let url = process.env.API_URL + '/users/' + user._id
+
+        const resp = await fetch(url, option)
+       // console.log(resp)
+        const data = await JSON.stringify(resp)
+        console.log(data)
 
         console.log('login response: ' + result.message);
         if (result.token.length > 5) {
@@ -204,8 +223,14 @@ router.delete('/:userId', verify, async (req,res) => {
 
 // Update a user
 router.patch('/:userId', verify, async (req,res) => {
+    
+    console.log('Patch User last connection: ')
+    console.log(req.body)
+  
+
+    
     try {
-        const ack = await User.updateOne( {_id : req.params.userId }, {$set: {name: req.body.name, email: req.body.email, password: req.body.password } } )
+        const ack = await User.updateOne( {_id : req.params.userId }, {$set: {name: req.body.name, email: req.body.email, password: req.body.password, lastConnectDate:req.body.lastConnect } } )
         res.json(ack)
     } 
     catch(err) {
@@ -221,7 +246,7 @@ router.patch('/:userId', verify, async (req,res) => {
 
 
 
-
+/*
 router.get('/getUserList', redirectLogin, async (req, res) => {
 
     console.log('getting users list')
@@ -251,7 +276,7 @@ router.get('/getUserList', redirectLogin, async (req, res) => {
     }
 
 })
-
+*/
 
 
 router.post('/deleteUser', redirectLogin, async (req, res) => {

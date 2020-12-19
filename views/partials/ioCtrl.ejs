@@ -1,0 +1,16 @@
+
+<div class='row px-4 py-2'>
+    <div class='col-sm-6'>
+        <div class='row'>
+            <div class='form-inline form-text mb-2 mr-2'><span id="name_span"><%= item.name %></span></div>&ensp;  
+            <div class='form-inline form-text mb-2 mr-2'>
+                 <small><i class="fa fa-tags"></i>
+               <span id="io_span"> <%=item.io %></span></small>
+            </div>   
+        </div>
+    </div>
+    <div class='col-sm-4'>
+        <button type='button' class="btn btn-success" value='<%= item.io %>' onclick="sendSetIO({io:this.value, state:'on'})">ON</button>
+        <button type='button' class="btn btn-warning" value='<%= item.io %>' onclick="sendSetIO({io:this.value, state:'off'})">OFF</button>
+    </div>
+</div>
