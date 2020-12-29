@@ -125,9 +125,6 @@ router.get('/data/:options', verify, async (req, res) => {
         }).sort({ time: 1 }).limit(50000)
 
         console.log("\nSending data...")
-        console.log("1st element: ")
-        console.log(data)
-        console.log()
 
         let ret = [];
 

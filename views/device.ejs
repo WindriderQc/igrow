@@ -245,7 +245,7 @@ async function waterburst()
                             <p class="m-0 font-weight-bold text-secondary">Live Cam</p>
                         </a>
                         <div class="collapse show" id="collapseFarmCam">
-                            <%- include('partials/camera', {server: "192.168.0.33", name: "babypi", smWidth: 12}); %>      
+                            <%- include('partials/camera', {server: "192.168.0.233", name: "keeper", smWidth: 12}) %>      
                         </div>
 
                     </div>
@@ -325,7 +325,7 @@ function mqttSubscription()
 function updateSelected() 
 { 
     iot.selectedDevice = $("#devices_select>option:selected").text()
-    updateHand(-100)
+   
 }
 
 function sendSetIO(item) 

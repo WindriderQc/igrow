@@ -1,16 +1,91 @@
 
 <script src="https://cdn.jsdelivr.net/npm/moment@latest/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
-<script type="text/javascript" src="js/timeline.js"></script>
 
-<canvas id="timeChart" height="400"></canvas>   
+<canvas id="timelineChart" height="400"></canvas>   
 
 <script>
 
-let timeChart
+let timelineChart
+const timeFormat = 'MM-DD    HH:mm:ss'
 
-createTimeChart( timeChart, '<%-titleText%>','<%- label %>', '<%- units %>')
 
 
+function newTimelineData( dat) 
+{
+        if(timelineChart)    //  TODO:   change pour utiliser OnDoc Ready..
+        {
+            //timeChart.data.labels.push(formatTime(data.time))
+            //timeChart.data.labels.push(dat.time)
+            let t = moment(dat.time).format(timeFormat)
+            console.log(t)
+            timelineChart.data.labels.push(t) 
+                  
+            timelineChart.data.datasets[0].data.push(dat.wifi)
+            
+            if(timelineChart.data.datasets[0].data.length > 200)
+                graphRemoveLast(timelineChart)
+            
+            timelineChart.update()  
+        }    
+}
+
+
+async function createTimelineChart(label,titleText, units ) 
+{
+    const chartCanvas = document.getElementById('timelineChart').getContext('2d');  
+    
+    const config = {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                label:  label, //"<%- label %>",   // 0
+                data:  0,//dbData.map(item => { return (item.data) }),
+                spanGaps: false,
+                showLines: true,
+                fill: false,
+                radius: 0.1,
+                backgroundColor: 'rgba(225, 125, 10, 0.5)', 
+                borderColor: 'rgba(225, 125, 10, 1)',
+                borderWidth: 1,
+                yAxisID: "y-axis",
+                }
+
+            ]
+        },
+        options: { 
+           // responsive: true, 
+            title:      {
+                display: true,
+                text:  titleText,//  "<%- titleText %>" //"Soil humidity"
+            },
+            scales: { 
+                  yAxes: 
+                  [
+                    {
+                        id: "y-axis",
+                        ticks: {
+                            suggestedMax: 100,
+                            beginAtZero: true
+                            },
+                        scaleLabel: {
+                            display: true,
+                            labelString: units //"<%- units %>" 
+                        }
+
+                    }
+                  ]  
+                                            
+            }
+        }
+    }
+
+    timelineChart = new Chart(chartCanvas, config );	
+
+}
+
+
+createTimelineChart( '<%-titleText%>','<%- label %>', '<%- units %>')
 
 </script>

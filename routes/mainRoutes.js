@@ -15,7 +15,7 @@ const apiUrl = process.env.API_URL
 
 //const getDb = require('../db').getDb
 //const getAlsDb = require('../db').getAlsDb;
-//const getMqtt = require('../mqttServer').getMqtt
+const getMqtt = require('../serverMqtt').getMqttClient
 
 
 
@@ -71,7 +71,7 @@ router.get("/iGrow", (req, res) => {
 ///  LoggedIn routes
 
 const redirectLogin = (req, res, next) => {
-    console.log(req.session)
+    //console.log(req.session)
     if (!req.session.userToken) {
         res.redirect('/login')
     } else {
@@ -224,7 +224,7 @@ router.get('/data/:options', redirectLogin, async (req, res) => {
     }
 
     try {
-        const response = await fetch(apiUrl + "/api/heartbeat/data/" + samplingRatio + "," + espID + ',' + dateFrom, option)
+        const response = await fetch(apiUrl + "/heartbeats/data/" + samplingRatio + "," + espID + ',' + dateFrom, option)
         const data = await response.json()
 
         if (!data) {

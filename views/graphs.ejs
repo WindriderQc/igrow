@@ -89,7 +89,7 @@
                <div class="card">
 
                   <%- include('partials/graph/meteoGraf') %> 
-                  <%- include('partials/graph/timeline', {titleText: "Humidity", label: "Soil", units: "%"}) %>
+                  <%- include('partials/graph/timeline', {titleText: "Wifi", label: "wifi", units: "%"}) %>
                         
                </div>
 
@@ -184,7 +184,7 @@ console.log(devicesList)
 let iot = new Iot(mqttlogin, devicesList )
 iot.setDevicesListOnSelect('devices_select', reloadAll)
 
-iot.mqClient.subscribe("esp32/data/#" )
+iot.mqClient.subscribe("esp32/#")
 
 let dataCount = 0; 
 
@@ -197,7 +197,7 @@ let validRange = (value) => {
 iot.mqClient.on('message', (topic, payload) => {
        // alert([topic, payload].join(": "))
 
-   if(topic == 'esp32/data/' + iot.selectedDevice) 
+   if(topic == 'esp32/alive/' + iot.selectedDevice) 
    {     
          let data = JSON.parse(payload)
          //console.log(data)
@@ -214,7 +214,11 @@ iot.mqClient.on('message', (topic, payload) => {
             newTempData(data)
             newGazData(data)
             newLuxData(data) 
-         }  
+
+           
+         }   
+         
+         newTimelineData(data)
    }
 
    if(topic == 'esp32/ios')   // TODO: n'est pas utilisé...  revoir la structure d'échange topic/msg
