@@ -17,7 +17,7 @@ class Iot {
         }
 
         console.log('attempting mqtt connect')
-        this.mqClient = mqtt.connect('ws://192.168.0.233:9001', options)   //TODO   check...  using ws to connect not ssl secure
+        this.mqClient = mqtt.connect('ws://192.168.0.33:9001', options)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
         console.log('mqtt client: ')
         console.log(this.mqClient)
 
@@ -43,7 +43,12 @@ class Iot {
     {
         this.domSelect = html_dom
 
-        this.setHtmlSelectList(this.deviceList, 0) 
+        if(this.deviceList.length == 0)
+            console.log('no ESP found in DB')
+        else  
+            this.setHtmlSelectList(this.deviceList, 0) 
+
+           
 
         if(_callback){
             this.callback_ = _callback

@@ -22,7 +22,7 @@ const getMqtt = require('../serverMqtt').getMqttClient
 
 
 /// DATA 
-let devices = [] //['ESP_35030', 'ESP_15060']
+//let devices = [] //['ESP_35030', 'ESP_15060']
 
 
 const ioList = [{'name': 'Lamp_1', 'io': 13},

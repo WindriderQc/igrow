@@ -26,7 +26,6 @@ router.get('/', verify, async (req, res) => {
 router.post('/', async (req, res) => {
     const log = req.body
     const post = new HeartbeatDB(log)
-
     try {
         const savedPost = await post.save()
         //console.log(savedPost)

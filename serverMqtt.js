@@ -84,7 +84,7 @@ function initMqtt()
         let data = JSON.parse(msg)
         console.log(data)
         if(data.action_type == 'btnBlue') {
-          waterburst();
+          waterburst();  //  TODO :    a rendre solide...   architecture de merde...
         }
       }
       else if (topic.indexOf('esp32/ios/') >= 0) {
@@ -136,7 +136,7 @@ async function saveEspPost(data, pathDB) {
     if (r === 'Access Denied') { console.log(r) }
     else {
       const result = JSON.parse(r)
-      if (result.sender) {        /*console.log('Success: ' + result.sender)*/          }
+      if (result.sender) {       /* console.log('Success: ' + result.sender)  */        }
       else {        console.log('Error: ' + result)      }
     }
 

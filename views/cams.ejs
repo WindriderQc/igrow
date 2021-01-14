@@ -15,19 +15,19 @@
     <div class="container-fluid bg-3 text-center">  
 <!-- Begin Container  -->   
 
-            <div class="row">
+           <div class="row">    <!--    TODO :  passer l'IP par variable du serveur -->
                 
-                <%- include('partials/camera', {server: "192.168.0.233", name: "babypi", smWidth: 4 }); %>
+                <%- include('partials/camera', {server: "192.168.0.33", name: "babypi", smWidth: 4 }); %>
 
-                <%- include('partials/camera', {server: "192.168.0.233", name: "guerrier", smWidth: 4 }); %>     
+                <%- include('partials/camera', {server: "192.168.0.33", name: "guerrier", smWidth: 4 }); %>     
                 
             </div>
 
             <div class="row">
                 
-                <%- include('partials/camera', {server: "192.168.0.233", name: "keeper", smWidth: 4 }); %>     
+                <%- include('partials/camera', {server: "192.168.0.33", name: "keeper", smWidth: 4 }); %>     
                           
-                <%- include('partials/camera', {server: "192.168.0.233", name: "blackpi", smWidth: 4 }); %>     
+                <%- include('partials/camera', {server: "192.168.0.33", name: "blackpi", smWidth: 4 }); %>     
 
             </div>
     
