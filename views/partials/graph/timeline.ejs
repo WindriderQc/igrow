@@ -7,18 +7,15 @@
 <script>
 
 let timelineChart
-const timeFormat = 'MM-DD    HH:mm:ss'
+const timeFormat = 'MM-DD    HH:mm:ss'   //  TODO : Variable config from  ejs server
 
 
 
-function newTimelineData( dat) 
+function newTimelineData(dat) 
 {
         if(timelineChart)    //  TODO:   change pour utiliser OnDoc Ready..
         {
-            //timeChart.data.labels.push(formatTime(data.time))
-            //timeChart.data.labels.push(dat.time)
             let t = moment(dat.time).format(timeFormat)
-            console.log(t)
             timelineChart.data.labels.push(t) 
                   
             timelineChart.data.datasets[0].data.push(dat.wifi)

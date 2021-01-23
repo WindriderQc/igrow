@@ -1,70 +1,52 @@
 class Iot {
-    constructor(mqttlogin, deviceList) {
-     
+    constructor(mqttlogin, deviceList) 
+    {
         this.selectedDevice = "";
         this.deviceList = deviceList;
-        this.domSelect;
-        this.domList;
         this.callback_ = null;
-
      
         let options = {
             rejectUnauthorized: false, 
             username: mqttlogin.user,        //  TODO : NOT SAFE!!   visible dans la console....   utiliser le header pour ca?  ou mettre en SSL
             password: mqttlogin.pass
-            /*key: fs.readFileSync('ssl/privkey.pem'),
-            cert: fs.readFileSync('ssl/fullchain.pem')*/
         }
 
-        console.log('attempting mqtt connect')
+        console.log('attempting mqtt connect mqtt client:')
         this.mqClient = mqtt.connect('ws://192.168.0.33:9001', options)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
-        console.log('mqtt client: ')
         console.log(this.mqClient)
 
         this.mqClient.on('error', (err) =>{   console.log(err)    })
-
-     
-
     } 
 
-    setHtmlSelectList(list, selectedOption)
+    setHtmlSelectList(html_dom, selectedOption)
     {
-       
-        let select = document.getElementById( this.domSelect );
-        for(let index in list) {
-              select.options[select.options.length] = new Option(list[index], index);
-        }
-        document.getElementById( this.domSelect ).options[selectedOption].selected = "true";
-        this.selectedDevice = document.getElementById( this.domSelect ).options[selectedOption].text
+        let select = document.getElementById( html_dom )
 
+        for(let index in this.deviceList) {
+            select.options[select.options.length] = new Option(this.deviceList[index], index);
+        }
+
+        document.getElementById( html_dom ).options[selectedOption].selected = "true";
+        
+        this.selectedDevice = document.getElementById( html_dom ).options[selectedOption].text
     }
+
 
     async setDevicesListOnSelect(html_dom, _callback = null)
     {
-        this.domSelect = html_dom
-
-        if(this.deviceList.length == 0)
-            console.log('no ESP found in DB')
-        else  
-            this.setHtmlSelectList(this.deviceList, 0) 
-
+        if(this.deviceList.length != 0)  this.setHtmlSelectList(html_dom, 0) 
+        else  console.log('no ESP found in DB')
            
-
-        if(_callback){
-            this.callback_ = _callback
-            _callback()
-        } 
-            
+        if(_callback){ this.callback_ = _callback; _callback()   }       
     }
+
 
     updateSelected()
     {
-        this.selectedDevice = $("#" + this.domSelect + ">option:selected").text()
+        this.selectedDevice = $("#" + this.Process + ">option:selected").text()
         
         this.callback_()
     }
-
-
 
 
     async updateStatus()

@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
     const post = new HeartbeatDB(log)
     try {
         const savedPost = await post.save()
-        //console.log(savedPost)
+       // console.log(savedPost)
         res.json(savedPost)
     } catch (err) {
         res.json({ message: err })

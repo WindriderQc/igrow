@@ -83,7 +83,7 @@ function initMqtt()
         let msg = message.toString()
         let data = JSON.parse(msg)
         console.log(data)
-        if(data.action_type == 'btnBlue') {
+        if(data.action_type == 'btnBlue'  && data.value == '1') {   //  {"device":"ESP_15605", "io":"BLUE", "action_type":"btnBlue", "value": "1"}
           waterburst();  //  TODO :    a rendre solide...   architecture de merde...
         }
       }

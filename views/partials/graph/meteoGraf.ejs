@@ -8,36 +8,28 @@
 <script>
 
 let tempChart
+let grafData
 
 function newTempData(data) 
 {
-        //console.log(dat)
-        if(tempChart) 
+    if(tempChart) 
+    {
+        tempChart.data.labels.push(data.time)   
+            
+        let datas = [ data.tempBM_280, data.pressure, data.airHumid, data.tempDht ]
+    
+       
+        for(let i=0; i<datas.length; i++ )
         {
-            //tempChart.data.labels.push(formatTime(data.time))
-            tempChart.data.labels.push(data.time)
-            const datasQty =  tempChart.data.datasets.length   
+            tempChart.data.datasets[i].data.push(datas[i])
+        }
+
+
+        if(tempChart.data.datasets[0].data.length > 200)   //  TODO : const de config laid!!!
+                graphRemoveLast(tempChart)
         
-            let datas = [ data.tempBM_280, data.pressure, data.airHumid, data.tempDht ]
-        
-            if(datasQty == datas.length)  
-            {
-                for(let i=0; i<datasQty; i++ )
-                {
-                    tempChart.data.datasets[i].data.push(datas[i])
-                }
-
-
-                if(tempChart.data.datasets[0].data.length > 200)   //  TODO : const de config laid!!!
-                    graphRemoveLast(tempChart)
-                tempChart.update()  
-            } 
-            else {
-                alert('Code error', 'chart dataset and data array desyncronized.')
-            }
-
-
-        }      
+        tempChart.update()  
+    }      
     
 }
 
@@ -45,6 +37,7 @@ function newTempData(data)
 async function createtempChart(data) 
 {
     //console.log(data)
+    grafData = data
 
     const chartCanvas = document.getElementById('tempChart').getContext('2d');
 
