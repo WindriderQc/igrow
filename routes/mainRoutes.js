@@ -9,7 +9,6 @@ const dbs = require('../serverDB')
 const bodyParser = require("body-parser")
 router.use(bodyParser.json({ limit: '10mb', extended: true }))
 router.use(bodyParser.urlencoded({ extended: true }))
-
 const apiUrl = process.env.API_URL
 
 
@@ -35,10 +34,6 @@ const ioList = [{'name': 'Lamp_1', 'io': 13},
 const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
 let topAlarms = []
-
-
-
-
 
 const TimeDiff = (startTime, endTime, format) => {
 
