@@ -2,42 +2,26 @@
 <script src="https://cdn.jsdelivr.net/npm/moment@latest/moment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 
-<canvas id="timelineChart" height="400"></canvas>   
+
+<div class="col-sm-<%=smWidth%>">
+    <div class="card text-center"> 
+        <canvas id="<%- label %>_timelineChart" height="<%- height %>"></canvas>   
+    </div>
+</div>
+
 
 <script>
 
-let timelineChart
-const timeFormat = 'MM-DD    HH:mm:ss'   //  TODO : Variable config from  ejs server
-
-
-
-function newTimelineData(dat) 
-{
-        if(timelineChart)    //  TODO:   change pour utiliser OnDoc Ready..
-        {
-            let t = moment(dat.time).format(timeFormat)
-            timelineChart.data.labels.push(t) 
-                  
-            timelineChart.data.datasets[0].data.push(dat.wifi)
-            
-            if(timelineChart.data.datasets[0].data.length > 200)
-                graphRemoveLast(timelineChart)
-            
-            timelineChart.update()  
-        }    
-}
-
-
-async function createTimelineChart(label,titleText, units ) 
-{
-    const chartCanvas = document.getElementById('timelineChart').getContext('2d');  
+$(()=>{
+   
+    const chartCanvas = document.getElementById("<%- label %>_timelineChart").getContext('2d');  
     
     const config = {
         type: 'line',
         data: {
             datasets: [
                 {
-                label:  label, //"<%- label %>",   // 0
+                label:  "<%- label %>",   // 0
                 data:  0,//dbData.map(item => { return (item.data) }),
                 spanGaps: false,
                 showLines: true,
@@ -52,10 +36,10 @@ async function createTimelineChart(label,titleText, units )
             ]
         },
         options: { 
-           // responsive: true, 
+            responsive: true, 
             title:      {
                 display: true,
-                text:  titleText,//  "<%- titleText %>" //"Soil humidity"
+                text:  "<%- titleText %>" //"Soil humidity"
             },
             scales: { 
                   yAxes: 
@@ -63,26 +47,64 @@ async function createTimelineChart(label,titleText, units )
                     {
                         id: "y-axis",
                         ticks: {
-                            suggestedMax: 100,
-                            beginAtZero: true
+                            suggestedMax: <%- ymax %>,
+                            suggestedMin: <%- ymin %>/*,
+                            beginAtZero: false*/
                             },
                         scaleLabel: {
                             display: true,
-                            labelString: units //"<%- units %>" 
+                            labelString: "<%- units %>" 
                         }
 
                     }
                   ]  
                                             
+            },
+
+            legend: {
+                display: false,
+                labels: {
+                    fontColor: 'rgb(255, 99, 132)'
+                }
             }
+
+
         }
     }
 
-    timelineChart = new Chart(chartCanvas, config );	
+    let chart = new Chart(chartCanvas, config );
+    
+    let lasttime = moment().format("<%- time_format %>")
+    
+    let lastDevice = ""
 
-}
+    setInterval(() =>{ 
 
+            if(!(lastDevice.indexOf(latestData.sender) >= 0))   // resets data if sender is different from previous msg
+            {
+                lastDevice = latestData.sender
+               // console.log(lastDevice)
+                chart.data.labels = []
+                chart.data.datasets[0].data = []
 
-createTimelineChart( '<%-titleText%>','<%- label %>', '<%- units %>')
+                chart.update() 
+            } 
+            else if(!moment(lasttime).isSame(latestData.time))
+            {
+                lasttime = latestData.time
+                let t = moment(latestData.time).format("<%- time_format %>")
+                chart.data.labels.push(t)     
+                chart.data.datasets[0].data.push(latestData["<%- label %>"])
+
+                if(chart.data.datasets[0].data.length > ("<%- max_length %>"))
+                    graphRemoveLast(chart)
+                
+                chart.update()  
+            }
+
+        }
+        ,  "<%- refreshDelay %>")
+
+})
 
 </script>

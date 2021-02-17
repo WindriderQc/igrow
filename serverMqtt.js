@@ -9,7 +9,10 @@ const moment = require('moment');
 const apiUrl = process.env.API_URL
 
 
-let mqtt_;
+let mqtt_
+
+
+
 
 
 
@@ -40,22 +43,21 @@ function initMqtt()
     })
 
 
+  
+
     mqttclient.on('message', async (topic, message) => {
 
       if (topic == 'esp32/boot') 
       {
         printmsg(topic, message) //  message is an arrayBuffer and contains ESP_ID
 
-        let config = await getESPConfig(message)
-       // let data = await JSON.parse(config)
-       
-         // console.log(config)
-       
-         let t = 'esp32/' + message + '/config'
-        //console.log(t)
-        let conf = await JSON.stringify(config)
-        mqttclient.publish(t, conf )
-
+    
+        setESPConfig(message)
+        
+         
+      }
+      else if (topic == 'esp32/getAlarms') 
+      {
 
         const als = await getAlarms()   //[{"_id":"5e6a9b80f263a8371216b9d4","espID":"ESP_35030","io":13,"tStart":"2020-03-01T04:30:30.000Z","tStop":"2020-03-01T04:15:15.000Z","__v":0}]
 
@@ -65,8 +67,8 @@ function initMqtt()
           const data = await rawResponse.json()
           console.log(data)
 
-          mqttclient.publish('esp32/' + message + '/io/' + data[0].io + '/sunrise', moment(data[0].tStart).format('HH:mm:ss'))
-          mqttclient.publish('esp32/' + message + '/io/' + data[0].io + '/nightfall', moment(data[0].tStop).format('HH:mm:ss'))
+          mqttclient.publish('esp32/' + message + '/io/sunrise', "" + data[0].io + ":" + moment(data[0].tStart).format('HH:mm:ss'))
+          mqttclient.publish('esp32/' + message + '/io/nightfall',"" + data[0].io + ":" + moment(data[0].tStop).format('HH:mm:ss'))
         }
 
       }
@@ -110,6 +112,9 @@ function initMqtt()
     })
 
 
+    //setInterval(checkAlarms, 1000)
+//setInterval(getAlarms, 5000)
+
 
     mqtt_ = mqttclient
 
@@ -133,12 +138,15 @@ function printmsg(topic, message)
 
 
 
-async function getESPConfig(espID) 
+async function setESPConfig(espID) 
 {
  
+  let t = 'esp32/' + espID + '/config'
+
+
   let config = []
 
-  if(espID.indexOf("ESP_38990") >= 0) {
+  if(espID.indexOf("ESP_38990") >= 0) {   //   TODO:  still WEMOSIO??
     config = [ { io: 2,  mode: "IN", lbl: "A0",  isA: 0, pre: "none" } 
               ,{ io: 4,  mode: "IN", lbl: "A1",  isA: 0, pre: "none" }
               ,{ io: 35, mode: "INPULL", lbl: "A2",  isA: 1,  pre: "none" }
@@ -192,24 +200,61 @@ async function getESPConfig(espID)
     AnalogInput  _A13( 35, "VBAT");   // A13 This is general purpose input #35 and also an analog input, which is a resistor divider connected to the VBAT line   Voltage is divided by 2 so multiply the analogRead by 2
     */
 
- /*  config = [{ pinMode: "INPUT", gpio: 34,  label: "A2",  isAnalog: true, preConfig: "none" } 
-              ,{ pinMode: "INPUT", gpio: 39,  label: "A3",  isAnalog: true, preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 36, label: "A4",    isAnalog: false,  preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 4,  label: "A5",    isAnalog: false,  preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 5,  label: "SPI",   isAnalog: false,  preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 18, label: "MISO",  isAnalog: false,  preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 19, label: "MOSI",  isAnalog: false,  preConfig: "none" }
+
+/*
+   let config1 = [  { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
+              ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
+              ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
+              ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
+              ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } ]; 
+
+    let c1 =  await JSON.stringify(config1)
+    
+   
 
 
-              ,{ pinMode: "INPUT_PULLUP", gpio: 21, label: "D21",  isAnalog: false, preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 14, label: "A6",   isAnalog: false, preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 15, label: "A8",   isAnalog: false, preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 13, label: "A12",  isAnalog: false, preConfig: "none" }
-              ,{ pinMode: "INPUT", gpio: 35, label: "A13",  isAnalog: true,  preConfig: "none" } ] */
+    let config2  = [ // { io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
+               // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
+               // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" }
+              ];
+              
+    let c2 =  await JSON.stringify(config2)
+  
+   
+
+    let config3  = [  { io: "14", mode: "IN", lbl: "D4",  isA: "0" }
+                ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
+                ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
+                ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ];
+
+    let c3 =  await JSON.stringify(config3)*/
+    
+
+    let config1 = [  { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
+    ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
+    ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
+    ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
+    ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
+
+ // { io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
+     // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
+     // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" }
+
+    ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
+    ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
+    ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
+    ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ];
+    
+    let c1 =  await JSON.stringify(config1)
+
+    mqtt_.publish(t+"/start", "")
+    mqtt_.publish(t, c1 )
+  //  mqtt_.publish(t, c2 )
+ //   mqtt_.publish(t, c3 )
+    mqtt_.publish(t +"/done", "" )
+
  }
 
-
-  return config
 }
 
 
@@ -240,7 +285,7 @@ async function saveEspPost(data, pathDB) {
 
 async function getAlarms() {
   try {
-    const rawResponse = await fetch(apiUrl + '/api/alarms/distinct');
+    const rawResponse = await fetch(apiUrl + '/api/alarms/distinct');   //   TODO:  get direct dans DB!!!!
     const ioArray = await rawResponse.json()
     //console.log(ioArray)
    
@@ -265,6 +310,39 @@ function getMqttClient() {
   assert.ok(mqtt_, "Mqtt has not been initialized. Please called init first.")
   return mqtt_
 }
+
+
+
+
+
+
+async function checkAlarms() 
+{
+  
+  
+  const als = await getAlarms()   //[{"_id":"5e6a9b80f263a8371216b9d4","espID":"ESP_35030","io":13,"tStart":"2020-03-01T04:30:30.000Z","tStop":"2020-03-01T04:15:15.000Z","__v":0}]
+
+  console.log("check alarms")
+    for ( item of als) 
+    {
+      const rawResponse = await fetch(apiUrl + '/api/alarms/getLast/' + item)
+      const data = await rawResponse.json()
+      //console.log(data)
+
+      const dateTimeAgo = moment(data[0].tStart).fromNow();
+      console.log(dateTimeAgo)
+      
+
+    //  mqtt_.publish('esp32/' + 'ESP_21737' + '/io/sunrise', "" + data[0].io + ":" + moment(data[0].tStart).format('HH:mm:ss'))
+    //  mqtt_.publish('esp32/' + 'ESP_21737' + '/io/nightfall',"" + data[0].io + ":" + moment(data[0].tStop).format('HH:mm:ss'))
+    }
+  
+}
+
+//setInterval(checkAlarms, 5000)
+
+
+
 
 
 module.exports = {

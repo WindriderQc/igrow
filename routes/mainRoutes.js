@@ -88,12 +88,24 @@ router.get('/cams', redirectLogin, (req, res) => {
 
 router.get('/device', redirectLogin, async (req, res) => {
     const list = await dbs.getDevices()
-    res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list })
+
+    let selected;
+    if(req.session.selectedDevice)  selected = req.session.selectedDevice
+    else selected = list[0] 
+    
+    res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list, selected: selected })
 })
+
 router.get('/graphs', redirectLogin, async (req, res) => { 
     const list = await dbs.getDevices()
-    res.render('graphs',{ mqttinfo: mqttinfo, devices: list })
+
+    let selected
+    if(req.session.selectedDevice)  selected = req.session.selectedDevice
+    else selected = list[0] 
+
+    res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: selected })
 })
+
 router.get('/settings', redirectLogin, async (req, res) => {
     const users = await dbs.getUsers()
     res.render('settings', {users: users})
@@ -210,6 +222,9 @@ router.get('/data/:options', redirectLogin, async (req, res) => {
     const dateFrom = options[2]
     const ratio = Number(samplingRatio)
     console.log({ ratio, espID, dateFrom })
+
+
+    req.session.selectedDevice = espID
 
     let option = {
         method: 'GET',
@@ -363,7 +378,7 @@ router.get('/getAlarms', (req, res) => {
 
 
 
-/*
+
 router.post('/set_alarm', async (req, res) => {
 
     console.log('post received: Set_alarm')
@@ -377,7 +392,7 @@ router.post('/set_alarm', async (req, res) => {
     //alsdb.insert(msg)
 
     let als = {}
-    als.espID =   'ESP_35030'  //  'ESP_15605'    ESP_35030
+    als.espID =   req.body.device_id //'ESP_35030'  //  'ESP_15605'    ESP_35030
     als.io = req.body.io_id
     als.tStart = req.body.tStart //moment(req.body.tStart).format('YYYY-MM-DD HH:MM:SS')
     als.tStop = req.body.tStop //moment(req.body.tStop).format('YYYY-MM-DD HH:MM:SS')
@@ -403,11 +418,11 @@ router.post('/set_alarm', async (req, res) => {
         }
         else {
             let mq = getMqtt()
-            let topic = 'esp32/' + als.espID + '/io/' + als.io
+            let topic = 'esp32/' + als.espID + '/io' 
             let startTime = moment(als.tStart).local().format('HH:mm:ss')
             let stopTime = moment(als.tStop).local().format('HH:mm:ss')
-            mq.publish(topic + '/sunrise', startTime)
-            mq.publish(topic + '/nightfall', stopTime)
+            mq.publish('esp32/' + als.espID + '/io/sunrise', als.io + ":" + startTime)
+            mq.publish('esp32/' + als.espID + '/io/nightfall', als.io + ":" + stopTime)
             console.log({topic, startTime, stopTime})
         }
 
@@ -416,9 +431,14 @@ router.post('/set_alarm', async (req, res) => {
         console.error(err)
     }
 
-    res.redirect("/device")
-})
+    req.session.selectedDevice = als.espID
 
+    res.redirect("/device")
+
+
+
+})
+/*
 
 async function resetDB(req) {
     console.log("reset DB.")

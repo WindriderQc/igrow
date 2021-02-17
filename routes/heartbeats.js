@@ -139,4 +139,51 @@ router.get('/data/:options', verify, async (req, res) => {
     }
 })
 
+
+router.get('/data/latest/:options', verify, async (req, res) => {
+
+    const options = req.params.options.split(',')
+    console.log(options)
+
+    for(i=0; i < options.length(); i++)
+    {
+        const data = await HeartbeatDB.find({
+            sender: espID,
+            time: { $gt: startDate }
+        }).sort({ time: 1 }).limit(50000)
+
+        console.log("\nSending data...")
+
+    }
+
+
+
+    const samplingRatio = options[0]
+    const espID = options[1]
+    const startDate = options[2]
+    const ratio = Number(samplingRatio)
+    console.log({ ratio, espID, startDate })
+
+    try {
+        const data = await HeartbeatDB.find({
+            sender: espID,
+            time: { $gt: startDate }
+        }).sort({ time: 1 }).limit(50000)
+
+        console.log("\nSending data...")
+
+        let ret = [];
+
+        for (let i = 0, len = data.length; i < len; i++) {
+            if (i % ratio === 0) {
+                ret.push(data[i]);
+            }
+        }
+        res.json(ret)
+    }
+    catch (err) {
+        res.json({ message: err })
+    }
+})
+
 module.exports = router

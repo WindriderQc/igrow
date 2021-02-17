@@ -33,7 +33,7 @@ function voiceReady() {
    mouth.setRate(1)
    mouth.setPitch(1)
 
-   mouth.speak('How you doin baby?'); // say something
+   mouth.speak('How you doinnn... ?'); // say something
 
   // mouth.setVoice(6)
 // mouth.speak('Caâlisss de tabârnack... Quessé tu fais la encore?'); // say something

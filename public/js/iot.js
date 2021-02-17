@@ -1,9 +1,10 @@
 class Iot {
     constructor(mqttlogin, deviceList) 
     {
-        this.selectedDevice = "";
-        this.deviceList = deviceList;
-        this.callback_ = null;
+        this.selectedDevice = ""
+        this.deviceList = deviceList
+        this.selectDom = ""
+        this.changeCallback = null
      
         let options = {
             rejectUnauthorized: false, 
@@ -18,34 +19,51 @@ class Iot {
         this.mqClient.on('error', (err) =>{   console.log(err)    })
     } 
 
-    setHtmlSelectList(html_dom, selectedOption)
+    setHtmlSelectList(selectedOption)
     {
-        let select = document.getElementById( html_dom )
+        let select = document.getElementById(this.selectDom)
 
         for(let index in this.deviceList) {
-            select.options[select.options.length] = new Option(this.deviceList[index], index);
+            select.options[select.options.length] = new Option(this.deviceList[index], index)
         }
 
-        document.getElementById( html_dom ).options[selectedOption].selected = "true";
+        select.options[selectedOption].selected = "true"
         
-        this.selectedDevice = document.getElementById( html_dom ).options[selectedOption].text
+        this.selectedDevice = select.options[selectedOption].text
     }
 
 
-    async setDevicesListOnSelect(html_dom, _callback = null)
+    async setDevicesListOnSelect(html_dom, selectedOption = 0, onChangeCallback = null )
     {
-        if(this.deviceList.length != 0)  this.setHtmlSelectList(html_dom, 0) 
-        else  console.log('no ESP found in DB')
-           
-        if(_callback){ this.callback_ = _callback; _callback()   }       
+        this.selectDom = html_dom
+        if(onChangeCallback) this.changeCallback = onChangeCallback 
+
+
+        if(this.deviceList.length != 0) {
+            this.setHtmlSelectList(selectedOption)  
+            if(onChangeCallback) { this.changeCallback = onChangeCallback; this.changeCallback(); } 
+        }  
+        else  console.log('no ESP found in DB')   
     }
 
 
     updateSelected()
-    {
-        this.selectedDevice = $("#" + this.Process + ">option:selected").text()
-        
-        this.callback_()
+    { 
+        this.selectedDevice = $("#" + this.selectDom + ">option:selected").text()
+        console.log("Selecting: " + this.selectedDevice)
+
+        if(this.changeCallback) this.changeCallback()  
+    }
+
+    setSelected(espID)
+    { 
+        let select = document.getElementById(this.selectDom)
+        let s = this.deviceList.indexOf(espID)
+      
+        select.options[s].selected = "true"
+     
+        this.selectedDevice = $("#" + this.selectDom + ">option:selected").text()
+        console.log("Setting selected: " + this.selectedDevice)
     }
 
 

@@ -3,13 +3,28 @@
 
 <head>
    <%- include('partials/head') %> 
+
    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
    <link rel="stylesheet"  type="text/javascript" href="css/YBs.css">
+
+   <script type="text/javascript" src="js/iot.js"></script>
 </head>
 
 
 <body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
-  
+
+<script>
+   const mqttlogin = JSON.parse('<%- mqttinfo %>')
+   const devicesList =  <%- JSON.stringify(devices) %>
+   console.log(devicesList)
+   let latestData = ""
+   let iot = new Iot(mqttlogin, devicesList )
+
+
+
+
+</script>
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">    <%- include('partials/nav') %>  </nav>
 
 <div class="content-wrapper">
@@ -41,11 +56,18 @@
             
 
          </script>
+
+
+
+
          <div class="col-sm-3">
+
+
+
             <div class="card">
                <form class="form-inline">
                  
-                     <select class="mx-2 form-control" id="devices_select" onchange=iot.updateSelected()></select>
+                     <select class="mx-2 form-control" id="devices_select" onchange=iot.updateSelected(reloadAll)></select>
                      <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="1"> Last hr </label>
                      <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="24"> 24 hrs </label>
                      <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="168" checked> Week </label>
@@ -82,15 +104,29 @@
          </div>
 
       </div>
-      
+
+
+      <div class="row mt-2">
+         <%- include('partials/graph/timeline', {titleText: "battery", label: "battery",  units: "v", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 6 }) %>
+         <%- include('partials/graph/timeline', {titleText: "co2",      label: "co2",     units: "", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
+         <%- include('partials/graph/timeline', {titleText: "lpg",      label: "lpg",     units: "", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
+         <%- include('partials/graph/timeline', {titleText: "Temperature", label: "tempBM_280", units: "oC", height: "180", smWidth: "3", time_format:  'HH:mm:ss', max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 50 }) %>
+         <%- include('partials/graph/timeline', {titleText: "pressure", label: "pressure", units: "hPa", height: "180", smWidth: "3", time_format:  'HH:mm:ss', max_length: 60, refreshDelay: 1000, ymin: 900, ymax: 100 }) %>
+         <%- include('partials/graph/timeline', {titleText: "airHumid", label: "airHumid", units: "%", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 10, ymax: 70 }) %>
+         <%- include('partials/graph/timeline', {titleText: "lux",     label: "lux",      units: "lux", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
+         <%- include('partials/graph/timeline', {titleText: "visible", label: "visible",  units: "lux", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 1200 }) %>
+       
+      </div>
+
+
         <div class="row ">
            
-            <div class="col-sm-8">
+            <div class="col-sm-12">
                <div class="card">
 
-                  <%- include('partials/graph/meteoGraf') %> 
-                  <%- include('partials/graph/timeline', {titleText: "Wifi", label: "wifi", units: "%"}) %>
-                        
+                  
+            
+                  <%- include('partials/graph/meteoGraf') %>      
                </div>
 
                <div class="row mt-2 ">
@@ -122,6 +158,9 @@
 
             </div>
 
+         </div>
+
+         <div class="row">
             <div class="col-sm-4">  
                <div class="card">  
                   <%- include('partials/graph/circleRaceGraf') %>
@@ -171,20 +210,16 @@
 <script type="text/javascript" src="js/gazChart.js"></script>
 <script type="text/javascript" src="js/luxChart.js"></script>
 
-<script type="text/javascript" src="js/iot.js"></script>
+
 
 <script>
-   
 
-const mqttlogin = JSON.parse('<%- mqttinfo %>')
-const devicesList =  <%- JSON.stringify(devices) %>
-console.log(devicesList)
-
-
-let iot = new Iot(mqttlogin, devicesList )
-iot.setDevicesListOnSelect('devices_select', reloadAll)
 
 iot.mqClient.subscribe("esp32/#")
+iot.setDevicesListOnSelect('devices_select', 0, reloadAll)
+iot.setSelected('<%- selected %>')
+
+
 
 let dataCount = 0; 
 
@@ -194,31 +229,38 @@ let validRange = (value) => {
    return ret
 }
 
+
+function updateCards(data)
+{
+   document.getElementById('latestData').innerHTML = JSON.stringify(data)
+   document.getElementById('temp_id').innerHTML = data.tempBM_280 + '&deg;'
+   document.getElementById('humid_id').innerHTML = data.airHumid + ' %'
+   document.getElementById('pressure_id').innerHTML = data.pressure + ' hPa'
+}
+
+
+
 iot.mqClient.on('message', (topic, payload) => {
        // alert([topic, payload].join(": "))
 
    if(topic == 'esp32/alive/' + iot.selectedDevice) 
    {     
          let data = JSON.parse(payload)
-         //console.log(data)
-         //if(data.sender == 'ESP_35030')
-         document.getElementById('latestData').innerHTML = payload
-         document.getElementById('temp_id').innerHTML = data.tempBM_280 + '&deg;'
-         document.getElementById('humid_id').innerHTML = data.airHumid + ' %'
-         document.getElementById('pressure_id').innerHTML = data.pressure + ' hPa'
+         latestData = data
+         
+        // console.log(latestData.sender)
+
+         updateCards(latestData)
+
        //  setRaceGrafValue('Soil Moisture W', data.soil1)
          dataCount++;
          if(dataCount >= document.getElementById('ratio_id').value)// * 60)// *60  => ESPs stream 1 per sec, DB records 1 per 60s
          {
             dataCount = 0;
-            newTempData(data)
-            newGazData(data)
-            newLuxData(data) 
-
-           
+           // newTempData(latestData)
+            newGazData(latestData)
+            newLuxData(latestData) 
          }   
-         
-         newTimelineData(data)
    }
 
    if(topic == 'esp32/ios')   // TODO: n'est pas utilisé...  revoir la structure d'échange topic/msg
@@ -260,7 +302,8 @@ async function getData(selectedDevice)
 
 async function reloadAll() 
 {
-      
+   latestData.sender = ""  //  used to detect changes in timelineGraph   //  TODO:  pas fameux
+
    const espData = await getData(iot.selectedDevice)
  
    createtempChart(espData) 

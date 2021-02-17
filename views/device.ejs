@@ -8,14 +8,19 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
 
-
-
-    <script type="text/javascript" src="js/iot.js"></script>
-  
+    <script type="text/javascript" src="js/iot.js"></script>  
 </head>
 
 
 <body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
+
+<script>
+    const mqttlogin = JSON.parse('<%- mqttinfo %>')
+    const devicesList =  <%- JSON.stringify(devices) %>
+    console.log(devicesList)
+    let iot = new Iot(mqttlogin, devicesList )
+
+ </script>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">    <%- include('partials/nav') %>  </nav>
 
@@ -24,7 +29,7 @@
     <div class="content-wrapper">
         <div class="container-fluid bg-3">
 
-            <select class="mx-2 form-control" id="devices_select" onchange=updateSelected()></select>
+            <select class="mx-2 form-control" id="devices_select" onchange=iot.updateSelected()></select>
 
             <div class="row pl-1 mb-2">
 
@@ -57,7 +62,7 @@
 <script>
     
         
-async function postData(url = '', data='') 
+async function postData(url = '', data='')     //  TODO:  devrait etre dans Tools
 {  
     let option = {
       method: 'POST',
@@ -166,6 +171,7 @@ async function waterburst()
                                     <form class='form-inline' action="/set_alarm" method="post" enctype="application/json">
                                         <input type="hidden" id="tStart" name="tStart" value="">
                                         <input type="hidden" id="tStop" name="tStop" value="">
+                                        <input type="hidden" id="device_id" name="device_id" value="">
 
                                         <div class='row mx-4 mb-3'>
 
@@ -245,7 +251,7 @@ async function waterburst()
                             <p class="m-0 font-weight-bold text-secondary">Live Cam</p>
                         </a>
                         <div class="collapse show" id="collapseFarmCam">
-                            <%- include('partials/camera', {server: "192.168.0.233", name: "keeper", smWidth: 12}) %>      
+                            <%- include('partials/camera', {server: "192.168.0.33", name: "keeper", smWidth: 12}) %>      
                         </div>
 
                     </div>
@@ -285,15 +291,66 @@ async function waterburst()
 
 
 <script>
+
+
+function updateHiddenSelected() {
+    document.getElementById('device_id').value = iot.selectedDevice
+}
+
 $(() => {
+
     $('#datetimepickerStart').datetimepicker({
-        defaultDate: moment({ hour: 08, minute: 30, seconds: 00 }),
+        defaultDate: moment()/*,{ hour: 08, minute: 30, seconds: 00 })*/,
         format: 'HH:mm:ss'
     })
     $('#datetimepickerStop').datetimepicker({
-        defaultDate: moment({ hour: 22, minute: 30, seconds: 30 }),
+        defaultDate: moment()/*,//{ hour: 22, minute: 30, seconds: 30 })*/,
         format: 'HH:mm:ss'
     })
+
+
+    mqttSubscription()
+    iot.setDevicesListOnSelect("devices_select", 0, updateHiddenSelected)
+    iot.setSelected('<%- selected %>')
+
+        
+    iot.mqClient.on("message", (topic, payload) => {
+        if(topic == 'esp32/alive/' + iot.selectedDevice) 
+        { 
+            let data = JSON.parse(payload)
+            
+            //updateHand(data.wifi)
+            if (typeof data.wifi != 'undefined') {
+                document.getElementById('ESP_35030rss_id_value_id').innerHTML =  data.wifi
+            }
+        
+            document.getElementById('latestData').innerHTML = JSON.stringify(data, null, '\t') 
+        }
+        
+        else if(topic == 'esp32/alarmList') {
+            console.log('Alarm List received')
+            alarms = JSON.parse(payload)
+            console.log(alarms)
+            
+            // Find a <table> element with id="myTable":
+            var table = document.getElementById('alarmTable')
+            let i = 0
+            for (x in alarms) {
+                var row = table.insertRow(i + 1)   // Create an empty <tr> element and add it to the 1st position of the table:
+                i++
+                // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+                var cell1 = row.insertCell(0)
+                var cell2 = row.insertCell(1)
+                var cell3 = row.insertCell(2)
+                var cell4 = row.insertCell(3)
+                // Add some text to the new cells:
+                cell1.innerHTML = alarms[x].espID
+                cell2.innerHTML = alarms[x].io
+                cell3.innerHTML = moment(alarms[x].tStart).format('HH:mm:ss')
+                cell4.innerHTML = moment(alarms[x].tStop).format('HH:mm:ss')    
+            }
+        }
+    })  
 })
 
 
@@ -306,13 +363,7 @@ function getValue() {
     document.getElementById("tStop").value = tStop;
 }
 
-const mqttlogin = JSON.parse('<%- mqttinfo %>')
-const list = <%-JSON.stringify(devices)%>
-console.log(list)
-let iot = new Iot(mqttlogin, list )
-iot.setDevicesListOnSelect("devices_select", mqttSubscription)
-//iot.selectedDevice = $("#devices_select>option:selected").text()
-//console.log(iot.selectedDevice)
+
 
 function mqttSubscription() 
 {
@@ -325,6 +376,8 @@ function mqttSubscription()
 function updateSelected() 
 { 
     iot.selectedDevice = $("#devices_select>option:selected").text()
+    console.log("Selecting: " + iot.selectedDevice)
+    document.getElementById('device_id').value = iot.selectedDevice
    
 }
 
@@ -336,43 +389,6 @@ function sendSetIO(item)
     iot.mqClient.publish(topic, item.io  )
 }
 
-iot.mqClient.on("message", (topic, payload) => {
-    if(topic == 'esp32/alive/' + iot.selectedDevice) 
-    { 
-        let data = JSON.parse(payload)
-        
-        //updateHand(data.wifi)
-        if (typeof data.wifi != 'undefined') {
-            document.getElementById('ESP_35030rss_id_value_id').innerHTML =  data.wifi
-        }
-      
-        document.getElementById('latestData').innerHTML = JSON.stringify(data, null, '\t') 
-    }
-    
-    else if(topic == 'esp32/alarmList') {
-        console.log('Alarm List received')
-        alarms = JSON.parse(payload)
-        console.log(alarms)
-        
-        // Find a <table> element with id="myTable":
-        var table = document.getElementById('alarmTable')
-        let i = 0
-        for (x in alarms) {
-            var row = table.insertRow(i + 1)   // Create an empty <tr> element and add it to the 1st position of the table:
-            i++
-            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
-            var cell1 = row.insertCell(0)
-            var cell2 = row.insertCell(1)
-            var cell3 = row.insertCell(2)
-            var cell4 = row.insertCell(3)
-            // Add some text to the new cells:
-            cell1.innerHTML = alarms[x].espID
-            cell2.innerHTML = alarms[x].io
-            cell3.innerHTML = moment(alarms[x].tStart).format('HH:mm:ss')
-            cell4.innerHTML = moment(alarms[x].tStop).format('HH:mm:ss')    
-        }
-    }
-})  
 </script>
 
 
