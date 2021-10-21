@@ -96,7 +96,7 @@ app
     //.use(rateLimit({ windowMs: 30 * 1000, max: 1 }))  //  prevents a user to crash server with too many request, altough with ESP32 sending heartbeat fast.. this cannot be set
     .use(session(sessionOptions))
     .use(express.static(path.resolve(__dirname, 'public') )) 
-    .use('/Files',    serveIndex(path.resolve(__dirname, 'public/Files'), {  'icons': true,  'stylesheet': 'public/css/indexStyles.css' } )) // use serve index to nav folder  (Attention si utiliser sur le public folder, la racine (/) du site sera index au lieu de html
+    .use('/Projects',    serveIndex(path.resolve(__dirname, 'public/Projects'), {  'icons': true,  'stylesheet': 'public/css/indexStyles.css' } )) // use serve index to nav folder  (Attention si utiliser sur le public folder, la racine (/) du site sera index au lieu de html
 
     .use('/', require('./routes/mainRoutes.js'))
     .use('/login', require('./routes/login.routes.js'))
@@ -104,7 +104,6 @@ app
     //.use('/iot/alarms', require('./routes/alarms.js'))
     .use('/api', require("./routes/api.routes"))
     //app.use('/geo', require("./routes/geo.routes"))
-    .use('/meows', require("./routes/meows.routes"))
     .use('/server', require("./routes/server.routes"))
  //.use('/keeper', require("./routes/keeper.routes"))
 
