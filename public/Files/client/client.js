@@ -5,16 +5,16 @@ const errorElement = document.querySelector('.error-message');
 const loadingElement = document.querySelector('.loading');
 const mewsElement = document.querySelector('.mews');
 const loadMoreElement = document.querySelector('#loadMore');
-const API_URL = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') ? 'http://localhost:5000/v2/mews' : 'https://meower-api.now.sh/v2/mews';
+const API_URL = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') ? 'http://localhost:3001/meows/v2/mews' : 'https://meower-api.now.sh/v2/mews';
 
 let skip = 0;
-let limit = 5;
+let limit = 15;    //   TODO:  si le limit est plus petit que window et y apas de scroll....   le scroll event launch pas
 let loading = false;
 let finished = false;
 
 errorElement.style.display = 'none';
 
-document.addEventListener('scroll', () => {
+document.addEventListener('scroll' ,() => {
   const rect = loadMoreElement.getBoundingClientRect();
   if (rect.top < window.innerHeight && !loading && !finished) {
     loadMore();
@@ -23,7 +23,7 @@ document.addEventListener('scroll', () => {
 
 listAllMews();
 
-form.addEventListener('submit', (event) => {
+form.addEventListener('submit' , async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
   const name = formData.get('name');
@@ -39,6 +39,7 @@ form.addEventListener('submit', (event) => {
       content
     };
     
+
     fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify(mew),
@@ -58,8 +59,9 @@ form.addEventListener('submit', (event) => {
       form.reset();
       setTimeout(() => {
         form.style.display = '';
-      }, 30000);
-      listAllMews();
+      }, 5000);
+      setTimeout(listAllMews, 1500) //  timeout prevent to launch before rateLimit  ..  TODO: weird
+    
     }).catch(errorMessage => {
       form.style.display = '';
       errorElement.textContent = errorMessage;
@@ -80,13 +82,16 @@ function loadMore() {
 function listAllMews(reset = true) {
   loading = true;
   if (reset) {
+    console.log('reset')
     mewsElement.innerHTML = '';
     skip = 0;
     finished = false;
   }
-  fetch(`${API_URL}?skip=${skip}&limit=${limit}`)
+  const url = `${API_URL}?skip=${skip}&limit=${limit}`
+  fetch(url)
     .then(response => response.json())
     .then(result => {
+        console.log(result.mews)
       result.mews.forEach(mew => {
         const div = document.createElement('div');
 

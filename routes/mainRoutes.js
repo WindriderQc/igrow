@@ -12,12 +12,11 @@ router.use(bodyParser.urlencoded({ extended: true }))
 const apiUrl = process.env.API_URL
 
 
-//const getDb = require('../db').getDb
-//const getAlsDb = require('../db').getAlsDb;
 const getMqtt = require('../serverMqtt').getMqttClient
 
 
-
+let nodeTools = require('../nodeTools')
+nodeTools.readFile("greetings.txt")
 
 
 /// DATA 
@@ -86,6 +85,8 @@ router.get('/cams', redirectLogin, (req, res) => {
     res.render('cams')
 })
 
+const alarmController = require('../controllers/alarmController')
+
 router.get('/device', redirectLogin, async (req, res) => {
     const list = await dbs.getDevices()
 
@@ -93,7 +94,11 @@ router.get('/device', redirectLogin, async (req, res) => {
     if(req.session.selectedDevice)  selected = req.session.selectedDevice
     else selected = list[0] 
     
-    res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list, selected: selected })
+
+    const alarmList = await alarmController.getAll()
+    console.log(alarmList)
+
+    res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list, selected: selected, alarmList: alarmList})
 })
 
 router.get('/graphs', redirectLogin, async (req, res) => { 
@@ -265,6 +270,13 @@ router.post('/set_io', (req, res) => {
     res.redirect('/iot')
 })
 
+
+
+
+
+
+
+
 module.exports = router;
 
 
@@ -379,105 +391,10 @@ router.get('/getAlarms', (req, res) => {
 
 
 
-router.post('/set_alarm', async (req, res) => {
-
-    console.log('post received: Set_alarm')
-    //console.log(JSON.stringify(req.body))
-
-    //var msg = req.body
-    //let tstamp = moment().format('YYYY-MM-DD HH:mm:ss')
-    //msg.tstamp = tstamp
-    //let alsdb = getAlsDb()
-    //console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    //alsdb.insert(msg)
-
-    let als = {}
-    als.espID =   req.body.device_id //'ESP_35030'  //  'ESP_15605'    ESP_35030
-    als.io = req.body.io_id
-    als.tStart = req.body.tStart //moment(req.body.tStart).format('YYYY-MM-DD HH:MM:SS')
-    als.tStop = req.body.tStop //moment(req.body.tStop).format('YYYY-MM-DD HH:MM:SS')
-    console.log(als)
-
-    let option = {
-        method: 'POST',
-        headers: {
-            'auth-token': req.session.userToken ,
-            'Content-type': 'application/json'   
-        },
-        body: JSON.stringify(als)
-    }
-    try {
-        const response = await fetch(apiUrl + "/api/alarms", option)
-        //console.log(response.body)
-        const data = await response.json()
-
-        if (!data) {
-            const message = "Error saving alarm";
-            console.log(message)
-            //return res.status(400).send(message);
-        }
-        else {
-            let mq = getMqtt()
-            let topic = 'esp32/' + als.espID + '/io' 
-            let startTime = moment(als.tStart).local().format('HH:mm:ss')
-            let stopTime = moment(als.tStop).local().format('HH:mm:ss')
-            mq.publish('esp32/' + als.espID + '/io/sunrise', als.io + ":" + startTime)
-            mq.publish('esp32/' + als.espID + '/io/nightfall', als.io + ":" + stopTime)
-            console.log({topic, startTime, stopTime})
-        }
-
-    }
-    catch (err) {
-        console.error(err)
-    }
-
-    req.session.selectedDevice = als.espID
-
-    res.redirect("/device")
 
 
 
-})
-/*
-
-async function resetDB(req) {
-    console.log("reset DB.")
-
-    let option = {
-        method: 'GET',
-        headers: {
-            'auth-token': req.session.userToken
-        }
-    }
-
-    try {
-        const response = await fetch(apiUrl + "/api/heartbeat/deleteAll", option)
-        console.log(response.body)
-        const data = await response.json()
-
-        if (!data) {
-            const message = "Could not delete DB";
-            console.log(message)
-            //return res.status(400).send(message);
-        }
-        else {
-            console.log(data)
-        }
-
-    }
-    catch (err) {
-        console.error(err)
-    }
-
-}
-
-router.get('/resetdb', redirectLogin, (req, res) => {
-    resetDB(req);
-    res.redirect('/settings', {serverUrl: process.env.SERVER_URL})
-})
-*/
-
-
+// NEeDB API
 
 /* add data through post
 
@@ -501,9 +418,6 @@ router.post('/data', bodyParser.json(), (req, res) =>{
     res.send(req.body)
 })
 */
-
-// NEeDB API
-
 /*
 router.get('/data', (req, res) => {
 

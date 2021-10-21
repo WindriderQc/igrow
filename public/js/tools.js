@@ -2,11 +2,6 @@
 
 //si  RacineCarré de (x^2 + y^2)    <= Rayon
 
-/*
-    //  <pre><p class="card-text" id='alarmlist_id' onload=getAlarms()>---</p></pre>
-    // var list = JSON.stringify( alarms, null, 4 );
-    //document.getElementById('alarmlist_id').innerHTML = list
-*/
 
 
 
@@ -68,6 +63,39 @@ const Tools = {
 
     randomValue : (data) => {
             return Math.max.apply(null, data) * Math.random()
+        },
+
+  
+    postData : async (url = '', data='') => {  
+        let option = {
+        method: 'POST',
+        headers: {
+            
+            'Content-type': 'application/x-www-form-urlencoded',  
+            'Content-length': data.length   
+        },
+        body : data //JSON.stringify(data)
         }
+        console.log (option)
+    // const response = await fetch(url, option)
+    fetch(url, option)
+        .then(response => response.text())
+        .then(body => {
+            try {
+                return JSON.parse(body);
+            } catch {
+                throw Error(body);
+            }
+        })
+        .then(console.log)
+        .catch(console.error)
+    }, 
+    
+
+    isObjEmpty: (obj) => {
+        for(let i in obj) return false; 
+        return true;
+    }
+    
 
 }

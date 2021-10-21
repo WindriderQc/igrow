@@ -1,6 +1,5 @@
-
 const HeartbeatDB = require('./models/Heartbeat')
-const User = require('./models/User')
+const User = require('./models/userModel')
 
 
 

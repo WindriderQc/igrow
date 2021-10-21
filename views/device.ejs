@@ -17,6 +17,7 @@
 <script>
     const mqttlogin = JSON.parse('<%- mqttinfo %>')
     const devicesList =  <%- JSON.stringify(devices) %>
+   
     console.log(devicesList)
     let iot = new Iot(mqttlogin, devicesList )
 
@@ -61,32 +62,7 @@
                             <div class="card-body">
 <script>
     
-        
-async function postData(url = '', data='')     //  TODO:  devrait etre dans Tools
-{  
-    let option = {
-      method: 'POST',
-      headers: {
-         
-          'Content-type': 'application/x-www-form-urlencoded',  
-          'Content-length': data.length   
-      },
-      body : data //JSON.stringify(data)
-    }
-    console.log (option)
-   // const response = await fetch(url, option)
-   fetch(url, option)
-    .then(response => response.text())
-    .then(body => {
-        try {
-            return JSON.parse(body);
-        } catch {
-            throw Error(body);
-        }
-    })
-    .then(console.log)
-    .catch(console.error)
-}
+ 
 /*
 There are a few 'gotchas' in the ESP8266WebServer's implementation. I have found the body shows up in the
 server.arg("plain")
@@ -104,16 +80,15 @@ async function waterburst()
 {
     console.log ('waterburst post received, sending relay request:')
   try {
-        postData("http://192.168.0.212/RELAY", 'state=ON')
+        Tools.postData("http://192.168.0.212/RELAY", 'state=ON')
       
         Tools.sleep(3000)
-        postData("http://192.168.0.212/RELAY", 'state=OFF')
+        Tools.postData("http://192.168.0.212/RELAY", 'state=OFF')
   }
   catch (err) {
       console.error(err)
   }
 }
-   /*.then(data => { console.log(data) })*/
 </script>
                             <form  >
                                 <input type="button" class="btn btn-primary" onclick="waterburst()" value="Water Burst">
@@ -168,7 +143,7 @@ async function waterburst()
                         <div class="collapse show" id="collapseTimerz">
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item">
-                                    <form class='form-inline' action="/set_alarm" method="post" enctype="application/json">
+                                    <form class='form-inline' action="/api/alarms/set" method="post" enctype="application/json">
                                         <input type="hidden" id="tStart" name="tStart" value="">
                                         <input type="hidden" id="tStop" name="tStop" value="">
                                         <input type="hidden" id="device_id" name="device_id" value="">
@@ -209,7 +184,7 @@ async function waterburst()
                                             </div>
 
                                             <div class="form-group mx-1">
-                                                <button type="submit" class="btn btn-success " onclick="getValue()">Set</button>
+                                                <button type="submit" class="btn btn-success " onclick="getStartStopValue()">Set</button>
                                             </div>
                                         </div>
                                     </form>
@@ -265,16 +240,10 @@ async function waterburst()
 
                         <div class="collapse show" id="collapseStats">
                             <div class="card-body">
-                                <div class='form-text'>JSON test</div>
+                                <div class='form-text'>Config</div>
                             </div>
                             <div class="card-body">
-                                <pre><div class='form-text' id='test'>xoxo</div></pre>
-<script>
-    const people = { "name": "Nat", "age": 39, "star": 1000000 }
-    const str = JSON.stringify(people, null, '\t') //  the null, '\t' is to prettyfy the string
-    console.log(str)
-    document.getElementById('test').innerHTML = str
-</script>
+                                <pre><div class='form-text' id='configText'>io : io</div></pre>
                             </div>
                         </div>
                     </div>
@@ -327,34 +296,11 @@ $(() => {
             document.getElementById('latestData').innerHTML = JSON.stringify(data, null, '\t') 
         }
         
-        else if(topic == 'esp32/alarmList') {
-            console.log('Alarm List received')
-            alarms = JSON.parse(payload)
-            console.log(alarms)
-            
-            // Find a <table> element with id="myTable":
-            var table = document.getElementById('alarmTable')
-            let i = 0
-            for (x in alarms) {
-                var row = table.insertRow(i + 1)   // Create an empty <tr> element and add it to the 1st position of the table:
-                i++
-                // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
-                var cell1 = row.insertCell(0)
-                var cell2 = row.insertCell(1)
-                var cell3 = row.insertCell(2)
-                var cell4 = row.insertCell(3)
-                // Add some text to the new cells:
-                cell1.innerHTML = alarms[x].espID
-                cell2.innerHTML = alarms[x].io
-                cell3.innerHTML = moment(alarms[x].tStart).format('HH:mm:ss')
-                cell4.innerHTML = moment(alarms[x].tStop).format('HH:mm:ss')    
-            }
-        }
     })  
 })
 
 
-function getValue() {
+function getStartStopValue() {
     var tStart = moment($('#datetimepickerStart').datetimepicker('viewDate')).format('YYYY-MM-DD HH:mm:ss')
     console.log(tStart)
     document.getElementById("tStart").value = tStart;
@@ -370,7 +316,7 @@ function mqttSubscription()
     iot.mqClient.subscribe("esp32/alive/#")
     iot.mqClient.subscribe("esp32/alarmList")
     //client.subscribe("esp32/ios/" + selectedEsp)
-    iot.mqClient.publish('esp32/command/getAlarms','')  //  TODO: comment choisir le ESP?
+  //  iot.mqClient.publish('esp32/command/getAlarms','')  //  TODO: comment choisir le ESP?
 }
 
 function updateSelected() 
@@ -388,6 +334,40 @@ function sendSetIO(item)
     //client.publish(msg, moment().format('YYYY-MM-DD HH:mm:ss'))
     iot.mqClient.publish(topic, item.io  )
 }
+
+
+
+const people = { "name": "Nat", "age": 39, "star": 1000000 }
+const str = JSON.stringify(people, null, '\t') //  the null, '\t' is to prettyfy the string
+console.log(str)
+document.getElementById('configText').innerHTML = str
+
+
+
+const alarmList =  <%- JSON.stringify(alarmList) %>
+console.log(alarmList)
+
+// Find a <table> element with id="myTable":
+var table = document.getElementById('alarmTable')
+let i = 0
+for (als in alarmList) {
+    var row = table.insertRow(i + 1)   // Create an empty <tr> element and add it to the 1st position of the table:
+    i++
+    // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+    var cell1 = row.insertCell(0)
+    var cell2 = row.insertCell(1)
+    var cell3 = row.insertCell(2)
+    var cell4 = row.insertCell(3)
+    // Add some text to the new cells:
+    cell1.innerHTML = alarmList[als].espID
+    cell2.innerHTML = alarmList[als].io
+    cell3.innerHTML = moment(alarmList[als].tStart).format('HH:mm:ss')
+    cell4.innerHTML = moment(alarmList[als].tStop).format('HH:mm:ss')    
+}
+
+
+
+
 
 </script>
 

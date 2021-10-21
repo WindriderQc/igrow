@@ -3,8 +3,8 @@ const HeartbeatDB = require('../models/Heartbeat')
 const verify = require('./verifyToken')
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-const bodyParser = require("body-parser"); //  requis sinon le body est vide...!?
-router.use(bodyParser.json());
+//const bodyParser = require("body-parser"); //  requis sinon le body est vide...!?
+//router.use(bodyParser.json());
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // Gets back all the posts
@@ -26,14 +26,14 @@ router.get('/', verify, async (req, res) => {
 router.post('/', async (req, res) => {
     const log = req.body
     const post = new HeartbeatDB(log)
-    try {
-        const savedPost = await post.save()
-       // console.log(savedPost)
-        res.json(savedPost)
-    } catch (err) {
-        res.json({ message: err })
-    }
 
+    try {
+            const savedPost = await post.save() 
+        // console.log(savedPost)
+            res.json(savedPost)
+        } catch (err) {
+            res.json({ message: err })
+    }
 
 })
 

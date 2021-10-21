@@ -1,34 +1,82 @@
-
-const express = require('express')
-const router = express.Router()
+const router = require('express').Router()
 const fetch = require('node-fetch');
-const User = require('../models/User')
+const moment = require('moment');
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const verify = require('./verifyToken')
 const { registerValidation, loginValidation } = require('../validation')
-
-const bodyParser = require("body-parser");
-const moment = require('moment');
-router.use(bodyParser.json({ limit: '10mb', extended: true }))
-router.use(bodyParser.urlencoded({ extended: true }))
-
+User = require('../models/userModel')
 
 const apiUrl = process.env.API_URL
 
 
-const redirectLogin = (req, res, next) => {  //console.log(req.session)
-    if (!req.session.userToken) {
-        res.redirect('/login')
-    } else {
-        next()
+
+// Gets back all users
+/*router.get('/', verify, async (req, res) => {
+    try{
+       console.log('\n\nUserList requested')
+        const users = await User.find()
+        console.log(users)
+        res.json(users)
+    }catch(err) {
+        res.json({message:err})
     }
-}
+})*/
+
+
+//Get a specific user
+/*router.get('/:userId', verify, async (req,res) => {
+   
+    try {
+         //const loggedUser = await User.findbyOne({_id: req.user})
+        //console.log(loggedUser)
+        const user = await User.findById(req.params.userId)
+        res.json(user)
+    } 
+    catch(err) {
+        res.json({message: err})
+    }
+
+})
+
+//Delete a specific user
+router.delete('/:userId', verify, async (req,res) => {
+  console.log(req.params.userId)
+    try {
+        const ack = await User.deleteOne( {_id : req.params.userId } )
+        res.json(ack)
+    } 
+    catch(err) {
+        res.json({message: err})
+    }
+})
+
+// Update a user
+router.patch('/:userId', verify, async (req,res) => {
+    
+    console.log('Patch User last connection: ')
+    console.log(req.body)
+  
+
+    
+    try {
+        const ack = await User.updateOne( {_id : req.params.userId }, {$set: {name: req.body.name, email: req.body.email, password: req.body.password, lastConnectDate:req.body.lastConnect } } )
+        res.json(ack)
+    } 
+    catch(err) {
+        res.json({message: err})
+    }
+})
+
+
+*/
+
 
 
 router.get("/register", (req, res) => {
     res.render('partials/register');
 })
+
 
 router.post("/register", async (req, res) => {
     const result = {
@@ -44,33 +92,51 @@ router.post("/register", async (req, res) => {
         return res.status(400).send(result)
     }
 
-    // Check if user exist
-    const emailExist = await User.findOne({ email: req.body.email })
-    if (emailExist) {
+    const check = await User.findOne({ email: req.body.email })
+    if (check) {
+        console.log('usr exist')
+        console.log(check)
         result.message = "Email already exists"
         return res.status(400).send(result)
     }
 
+    // Check if user exist
+   // const emailExist = await User.findOne({ email: req.body.email })
+   
+    /*User.existsViaEmail(req.body.email, async (usr) => {
+        
+        if (usr) {
+            console.log('usr exist')
+            result.message = "Email already exists"
+            return res.status(400).send(result)
+        }*/
+
+
     // Hash password
-    const salt = await bcrypt.genSalt(10)
-    const hashPassword = await bcrypt.hash(req.body.password, salt)
+        const salt = await bcrypt.genSalt(10)
+        const hashPassword = await bcrypt.hash(req.body.password, salt)
 
-    const user = new User({
-        name: req.body.name,
-        email: req.body.email,
-        password: hashPassword
-    })
+        const user = new User({
+            name : req.body.name,
+            email : req.body.email,
+            password: hashPassword
+        })
+            
 
-    try {
-        const savedUser = await user.save()
-        result.user = savedUser.id
-        result.message = 'Success'
-        res.redirect('/')
-    } 
-    catch (err) {   
-        console.log(result.message)
-        res.redirect('/register')   
-    }
+        try {
+            const savedUser =  await user.save()
+            console.log(savedUser)
+            result.user = savedUser.name + " - " + savedUser._id
+            result.message = 'Success'
+            res.redirect('/')
+        } 
+        catch (err) {   
+            console.log(result)
+            res.redirect('/login/register')   
+        }
+
+
+    
 })
 
 
@@ -156,41 +222,12 @@ router.post('/login', async (req, res) => {  console.log('login request: ' + req
 
 
 
-router.post("/test", async (req, res) => {
-  console.log("test");
-  res.header("auth-test", "yoyo").send("test good");
-})
 
 
 
-// Gets back all users
-router.get('/', verify, async (req, res) => {
-    try{
-       console.log('\n\nUserList requested')
-        const users = await User.find()
-        console.log(users)
-        res.json(users)
-    }catch(err) {
-        res.json({message:err})
-    }
-})
 
 
-//Get a specific user
-router.get('/:userId', verify, async (req,res) => {
-   
-    try {
-         //const loggedUser = await User.findbyOne({_id: req.user})
-        //console.log(loggedUser)
-        const user = await User.findById(req.params.userId)
-        res.json(user)
-    } 
-    catch(err) {
-        res.json({message: err})
-    }
-
-})
-router.get('/userEmail/:email', verify, async (req,res) => {
+router.get('/viaEmail/:email', verify, async (req,res) => {
    
     try {
         console.log('seeking: ' + req.params.email)
@@ -209,40 +246,54 @@ router.get('/userEmail/:email', verify, async (req,res) => {
 
 
 
-//Delete a specific user
-router.delete('/:userId', verify, async (req,res) => {
-  console.log(req.params.userId)
+
+
+
+
+
+
+
+
+router.post('/deleteViaEmail', verify, async (req, res) => {
+
+    console.log('deleting : ' + req.body.email)
+
+    let option = { headers: {  'auth-token': req.session.userToken        } }
+
+    let uid
+
     try {
-        const ack = await User.deleteOne( {_id : req.params.userId } )
-        res.json(ack)
-    } 
-    catch(err) {
-        res.json({message: err})
+        option.method = 'GET'
+        const response = await fetch(apiUrl + "/api/user/viaEmail/" + req.body.email, option)
+        //console.log(res1)
+        const data = await response.text()
+        if (!data) {
+            const message = "Email is not found";
+            return res.status(400).send(message);
+        } else uid = JSON.parse(data)
+
+
+        option.method = 'DELETE'
+        const res2 = await fetch(apiUrl + '/api/user/' + uid._id, option)
+        const confirm = await res2.text()
+        console.log(confirm)
     }
+    catch (err) {
+        console.error(err)
+    }
+
 })
 
-// Update a user
-router.patch('/:userId', verify, async (req,res) => {
-    
-    console.log('Patch User last connection: ')
-    console.log(req.body)
-  
-
-    
-    try {
-        const ack = await User.updateOne( {_id : req.params.userId }, {$set: {name: req.body.name, email: req.body.email, password: req.body.password, lastConnectDate:req.body.lastConnect } } )
-        res.json(ack)
-    } 
-    catch(err) {
-        res.json({message: err})
-    }
+router.get('/logout', verify, (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            res.send('error destroying session')
+        }
+        console.log('logout & session destroy')
+        res.clearCookie(process.env.SESS_NAME)
+        res.redirect('/login')
+    })
 })
-
-
-
-
-
-
 
 
 
@@ -277,54 +328,6 @@ router.get('/getUserList', redirectLogin, async (req, res) => {
 
 })
 */
-
-
-router.post('/deleteUser', redirectLogin, async (req, res) => {
-
-    console.log('deleting : ' + req.body.email)
-
-    let option = {
-        method: 'GET',
-        headers: {
-            'auth-token': req.session.userToken
-        }
-    }
-
-    let uid
-
-    try {
-        const response = await fetch(apiUrl + "/api/user/userEmail/" + req.body.email, option)
-        //console.log(res1)
-        const data = await response.text()
-        if (!data) {
-            const message = "Email is not found";
-            return res.status(400).send(message);
-        } else uid = JSON.parse(data)
-
-
-        option.method = 'DELETE'
-        const res2 = await fetch(apiUrl + '/api/user/' + uid._id, option)
-        const confirm = await res2.text()
-        console.log(confirm)
-    }
-    catch (err) {
-        console.error(err)
-    }
-
-})
-
-router.get('/logout', redirectLogin, (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            res.send('error destroying session')
-        }
-        console.log('logout & session destroy')
-        res.clearCookie(process.env.SESS_NAME)
-        res.redirect('/login')
-    })
-})
-
-
 
 
 
