@@ -11,7 +11,7 @@ router.get('/', (req, res) => {
 router.get('/list', async (req, res, next) => {
     // let skip = Number(req.query.skip) || 0
     // let limit = Number(req.query.limit) || 10
-    let { skip = 0, limit = 5, sort = 'desc' , collection } = req.query
+    let { skip = 0, limit = 5, sort = 'desc' , collection = 'alarms'} = req.query
     skip = parseInt(skip) || 0
     limit = parseInt(limit) || 5
 

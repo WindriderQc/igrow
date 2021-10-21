@@ -1,22 +1,16 @@
 const router = require('express').Router()
+const fetch = require('node-fetch')
 //const verify = require('./verifyToken')
 const moment = require('moment')
-const fetch = require('node-fetch')
-//require('dotenv').config();
-const dbs = require('../serverDB')
-//const mailman = require('./mailman')
 
-const bodyParser = require("body-parser")
-router.use(bodyParser.json({ limit: '10mb', extended: true }))
-router.use(bodyParser.urlencoded({ extended: true }))
+const dbs = require('../serverDB')
+const alarmController = require('../controllers/alarmController')
+const getMqtt = require('../serverMqtt').getMqttClient
+const Tools = require('../nodeTools')
+Tools.readFile("greetings.txt")
+
 const apiUrl = process.env.API_URL
 
-
-const getMqtt = require('../serverMqtt').getMqttClient
-
-
-let nodeTools = require('../nodeTools')
-nodeTools.readFile("greetings.txt")
 
 
 /// DATA 
@@ -32,16 +26,6 @@ const ioList = [{'name': 'Lamp_1', 'io': 13},
              
 const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
-let topAlarms = []
-
-const TimeDiff = (startTime, endTime, format) => {
-
-    startTime = moment(startTime, 'YYYY-MM-DD HH:mm:ss');
-    endTime = moment(endTime, 'YYYY-MM-DD HH:mm:ss');
-    return endTime.diff(startTime, format);
-}
-
-
 
 
 
@@ -55,12 +39,11 @@ router.get("/login", (req, res) => {
     res.render('partials/login', {user: process.env.API_USER, pass: process.env.API_PASS  });
 }) 
 
-router.get("/iGrow", (req, res) => {
-    res.send('Hello')
-})
+router.get("/iGrow", (req, res) => {  res.send('Hello')  })
 
+router.get('/live', (req, res) => {  res.render('live')  })
 
-
+router.get('/empty', (req, res) => {  res.render('empty') })
 
 ///  LoggedIn routes
 
@@ -73,19 +56,12 @@ const redirectLogin = (req, res, next) => {
     }
 }
 
-router.get('/index', redirectLogin, (req, res) => {
-    res.render('index', { name: req.session.email })  //console.log(req.session)
+router.get('/index', redirectLogin, (req, res) => {  res.render('index', 
+    { name: req.session.email })  //console.log(req.session)
 })
 
-router.get('/live', (req, res) => {
-    res.render('live')
-})
+router.get('/cams', redirectLogin, (req, res) => {  res.render('cams')  })
 
-router.get('/cams', redirectLogin, (req, res) => {
-    res.render('cams')
-})
-
-const alarmController = require('../controllers/alarmController')
 
 router.get('/device', redirectLogin, async (req, res) => {
     const list = await dbs.getDevices()
@@ -96,7 +72,7 @@ router.get('/device', redirectLogin, async (req, res) => {
     
 
     const alarmList = await alarmController.getAll()
-    console.log(alarmList)
+    //console.log(alarmList)
 
     res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list, selected: selected, alarmList: alarmList})
 })
@@ -116,9 +92,7 @@ router.get('/settings', redirectLogin, async (req, res) => {
     res.render('settings', {users: users})
 })
 
-router.get('/empty', (req, res) => {
-    res.render('empty')
-})
+
 
 router.get('/iot', redirectLogin, async (req, res) => {
     const list = await dbs.getDevices()
@@ -217,8 +191,6 @@ router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
 
 
 
-
-
 router.get('/data/:options', redirectLogin, async (req, res) => {
 
     const options = req.params.options.split(',')
@@ -273,14 +245,9 @@ router.post('/set_io', (req, res) => {
 
 
 
-
-
-
-
 module.exports = router;
 
-
-/*
+/*//  NeDB 
 const Datastore = require('nedb')
 const picDb = new Datastore('pics.db');
 picDb.loadDatabase();
@@ -292,147 +259,8 @@ router.get('/api', (request, response) => {
     });
 });
 
-router.post('/api', bodyParser.json(), (req, res) => {  //  TODO : je crois que bodyparser n'est plus requis... bug corrigé
-
-    console.log('post to /api:')
-    const data = req.body
-    const timestamp = Date.now()
-    data.timestamp = timestamp
-    picDb.insert(data)
-    res.json(data)
-
-});
-
-router.post('/alert', bodyParser.json(), async (req, res) => {
-
-    console.log('post to Alert:')
-
-    const alert = req.body
-    const dest = alert.dest
-    const msg = alert.msg
-    const image64 = alert.image64
-    //console.log(alert)
-
-    console.log(dest, msg);
-
-    const answer = await mailman.sendEmail(dest, msg, image64)
-    console.log()
-
-})
-
-
-*/
-
-
-
-
-
-/*
-async function getLatest(io_id)
-{
-  
-    var database = getAlsDb()
- 
-    database.find({io_id:io_id}).sort({tstamp:-1}).limit(1).exec( (err, latest) =>{
-        if(err) { console.log(err); res.end(); return } 
-        var r = latest
-        topAlarms.push(r)
-        return r
-    })
-}
-*/
-
-//setInterval(()=>{console.log( topAlarms)}, 5000)
-
-/*router.get('/latestAlarm', async (req, res) => {
- 
-    //console.log(req.query.io_id) 
-    var database = getAlsDb()
- 
-   // const late = await getLatest(req.query.io_id)
-    //res.json(late)
-    database.findOne({io_id:req.query.io_id}).sort({tstamp:-1}).exec( (err, latest) =>{
-        if(err) { console.log(err); res.end(); return } 
-        var r = latest
-        res.json(r);
-    })
- })
-*/
-/*
-router.get('/getAlarms', (req, res) => {
-
-    let database = getAlsDb()
-
-    database.find({}).sort({ 'tstamp': 1 }).exec((err, data) => {
-
-        if (err) { console.log(err); res.end(); return }
-
-        console.log("GET  alsDb ordered by timestamp")
-
-        let alarms = data
-        let IOs = {};
-
-        alarms.forEach((item) => {
-            var io = IOs[item.io_id] = IOs[item.io_id] || {}
-            //io['lastEntry'] = 'true'    
-            io['tStart'] = moment(item.tStart).format('HH:mm:ss')  //  record time of last identical io_id found  (provided data must be sorted accordingly)
-            io['tStop'] = moment(item.tStop).format('HH:mm:ss')
-        })
-
-        console.log(IOs)
-        //console.log( JSON.stringify( IOs, null, 4 ) );
-        res.json(IOs)
-    })
-
-})
-
-*/
-
-
-
-
-
-
-
-// NEeDB API
-
-/* add data through post
-
-router.post('/data', bodyParser.json(), (req, res) =>{
-
-    console.log ('post received:')
-    console.log(req.body)
-
-    let esp
-    esp.time = req.body.time
-    esp.battery = req.body.battery
-    esp.CPUtemp = req.body.CPUtemp
-    esp.tempBM_280 = req.body.tempBM_280
-    esp.pressure = req.body.pressure
-    esp.altitude = req.body.altitude
-
-    database.insert(esp)
-
-    io.socket.broadcast.emit('dataUpdate', esp)
-
-    res.send(req.body)
-})
-*/
-/*
-router.get('/data', (req, res) => {
-
-    var database = getDb()
-    database.find({}).sort({ time: 1 }).limit(50000).exec((err, data) => {
-        if (err) { res.end(); return }
-        console.log("GET  db ordered by timestamp")
-        res.json(data)
-    })
-
-})
-
-*/
-//  NeDB - delete complete DB
-/*function resetNeDB() {
+// delete complete DB
+function resetNeDB() {
     console.log("reset DB.")
     var database = getDb()
 
@@ -442,7 +270,14 @@ router.get('/data', (req, res) => {
         })
     })
 
-}*/
+}
+database.find({io_id:io_id}).sort({tstamp:-1}).limit(1).exec( (err, latest) =>{
+        if(err) { console.log(err); res.end(); return } 
+        var r = latest
+        topAlarms.push(r)
+        return r
+})
+*/
 
 
 

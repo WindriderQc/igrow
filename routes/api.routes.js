@@ -9,13 +9,12 @@ router.get('/', function (req, res) {
 })
 
 router.get('/hello', function (req, res) {
-    res.send('hello')
+    res.send('hello from SBQC API')
 })
 
 
 
-
-// Import contact controller
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 const contactController = require('../controllers/contactController')
 
 // Contact routes
@@ -30,12 +29,12 @@ router.route('/contacts/:contact_id')
     .delete(contactController.delete)
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 const userController = require('../controllers/userController')
 
 router.post("/users/test", async (req, res) => {
     console.log("test");
-    res.header("auth-test", "yoyo").send("test good");
+    res.header("auth-test", "yoyo").send("test good");  //  testing custom header 
     })
 
 router.route('/users')
@@ -49,9 +48,7 @@ router.route('/users/:user_id')
     .delete(userController.delete)
 
 
-
-
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 const alarmController = require('../controllers/alarmController')
 
 router.route('/alarms')
@@ -73,18 +70,11 @@ let nodeTools = require('../nodeTools')
 const getMqtt = require('../serverMqtt').getMqttClient
 const moment = require('moment')
 
-router.route('/alarms/set')
-    .post(async (req, res) => {
+router.route('/alarms/setAlarm')  
+    .post(async (req, res) => { // TODO:  devrait etre défini ailleur ptete?
 
     console.log('post received: Set_alarm')
     //console.log(JSON.stringify(req.body))
-
-    //var msg = req.body
-    //let tstamp = moment().format('YYYY-MM-DD HH:mm:ss')
-    //msg.tstamp = tstamp
-    //let alsdb = getAlsDb()
-    //console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    //alsdb.insert(msg)
 
     let als = {}
     als.espID =   req.body.device_id //'ESP_35030'  //  'ESP_15605'    ESP_35030
