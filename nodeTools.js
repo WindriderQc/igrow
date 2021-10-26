@@ -68,3 +68,12 @@ exports.TimeDiff = (startTime, endTime, format) => {
   endTime = moment(endTime, 'YYYY-MM-DD HH:mm:ss');
   return endTime.diff(startTime, format);
 }
+
+
+exports.cliError = (err) => {
+  console.error(`ERROR(${err.code}): ${err.message}`)
+}
+
+exports.cliWarning = (err) => {
+  console.warn(`ERROR(${err.code}): ${err.message}`)
+}

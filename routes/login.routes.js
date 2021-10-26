@@ -141,7 +141,9 @@ router.post("/register", async (req, res) => {
 
 
 
-router.post('/login', async (req, res) => {  console.log('login request: ' + req.body.email)
+router.post('/login', async (req, res) => {  
+    
+    console.log('login request: ' + req.body.email)
 
     try {
         const result = {
@@ -156,7 +158,8 @@ router.post('/login', async (req, res) => {  console.log('login request: ' + req
         
             result.message = error.details[0].message
             console.log(result.message)
-            return res.status(400).send(result)
+            //return res.status(400).send(result)
+            return res.render('partials/loginnomatch', {alertMsg: "Oups: " + result.message})
         }
     
         // Check if user exist
@@ -164,7 +167,8 @@ router.post('/login', async (req, res) => {  console.log('login request: ' + req
         if (!user) {
             result.message = "Email is not found"
             console.log(result.message)
-            return res.status(400).send(result)
+            return res.render('partials/loginnomatch', {alertMsg: "User not found. Please register or contact your admin."})
+            //return res.status(400).send(result)
         }
 
         // Check password
@@ -172,7 +176,8 @@ router.post('/login', async (req, res) => {  console.log('login request: ' + req
         if (!validPass) {
             result.message = "Email or password is wrong"
             console.log(result.message)
-            return res.status(400).send(result)
+            return res.render('partials/loginnomatch', {alertMsg: "Sorry, email or password incorrect. Please try again."})
+            //return res.status(400).send(result)
         }
         //else console.log('success')
         // Create and assign a token
@@ -212,7 +217,7 @@ router.post('/login', async (req, res) => {  console.log('login request: ' + req
         }
 
         else
-            res.render('partials/loginnomatch')
+            res.render('partials/loginnomatch', {alertMsg: "Sorry, something wrong with authentification. Please contact your admin."})
     }
     catch (err) {
         console.log(err)
@@ -286,9 +291,7 @@ router.post('/deleteViaEmail', verify, async (req, res) => {
 
 router.get('/logout', verify, (req, res) => {
     req.session.destroy(err => {
-        if (err) {
-            res.send('error destroying session')
-        }
+        if (err) res.send('error destroying session')
         console.log('logout & session destroy')
         res.clearCookie(process.env.SESS_NAME)
         res.redirect('/login')

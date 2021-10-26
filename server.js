@@ -3,10 +3,9 @@ const express = require('express'),
 session = require('express-session'),
 serveIndex = require('serve-index'),
 path = require('path'),
-rateLimit = require('express-rate-limit'),
 mongoose = require('mongoose'),
 cors = require('cors')
-
+//rateLimit = require('express-rate-limit'),
 
 
 const IN_PROD = process.env.NODE_ENV === 'production'  // for https channel...  IN_PROD will be true if in production environment
@@ -96,20 +95,22 @@ app
     //.use(rateLimit({ windowMs: 30 * 1000, max: 1 }))  //  prevents a user to crash server with too many request, altough with ESP32 sending heartbeat fast.. this cannot be set
     .use(session(sessionOptions))
     .use(express.static(path.resolve(__dirname, 'public') )) 
-    .use('/Projects',    serveIndex(path.resolve(__dirname, 'public/Projects'), {  'icons': true,  'stylesheet': 'public/css/indexStyles.css' } )) // use serve index to nav folder  (Attention si utiliser sur le public folder, la racine (/) du site sera index au lieu de html
-
-    .use('/', require('./routes/mainRoutes.js'))
+    
+    .use('/', require('./routes/mainRoutes.js')) 
     .use('/login', require('./routes/login.routes.js'))
     .use('/heartbeats', require('./routes/heartbeats.js'))
     //.use('/iot/alarms', require('./routes/alarms.js'))
     .use('/api', require("./routes/api.routes"))
     //app.use('/geo', require("./routes/geo.routes"))
     .use('/server', require("./routes/server.routes"))
- //.use('/keeper', require("./routes/keeper.routes"))
+    //.use('/keeper', require("./routes/keeper.routes"))
+     .use('/Projects',    serveIndex(path.resolve(__dirname, 'public/Projects'), {  'icons': true,  'stylesheet': 'public/css/indexStyles.css' } )) // use serve index to nav folder  (Attention si utiliser sur le public folder, la racine (/) du site sera index au lieu de html
+
 
 // Launching server
     .listen(PORT, () => { 
         console.log(`\n\nServer running in ${process.env.NODE_ENV} mode at port ${PORT}`)
+        console.log(`\n(Nginx may change public port)`)
         console.log('Press Ctrl + C to exit\n')
     })
 

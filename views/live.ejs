@@ -155,28 +155,6 @@
           
          </div>
 
-<script src="js/locateData.js"></script>
-<script src="js/motionCam.js"></script>
-
-<script>
-// Geo Locate
-
-if ('geolocation' in navigator) {
-    console.log('geolocation available')
-    
-    //POST  https://www.googleapis.com/geolocation/v1/geolocate?key=process.env.GEO_API
-
-
-    navigator.geolocation.getCurrentPosition(gotLocation, (pos) => {
-      console.log(pos)
-    })//, options);
-  } else {
-    console.log('geolocation not available');
-  }
-
-
-</script>
-
 
         
 <!-- <div class="card">
@@ -205,5 +183,66 @@ if ('geolocation' in navigator) {
 </div>
 
 <%- include('partials/footer') %>
+
+<script src="js/motionCam.js"></script>
+<script>
+  const updateGeoData = async () => {
+    try {
+      const {coords} = await Tools.geoLocate(),
+        url =`weather/${coords.latitude},${coords.longitude}`; 
+   
+      let lat, lon, accuracy, weather, air  
+      lat = coords.latitude
+      lon = coords.longitude
+      accuracy = coords.accuracy  
+
+      console.log('Your current position is:');
+      console.log(`Latitude : ${lat}`);
+      console.log(`Longitude: ${lon}`);
+      console.log(`More or less ${accuracy} meters.`);
+      document.getElementById('lat_id').textContent = lat.toFixed(2)
+      document.getElementById('lon_id').textContent = lon.toFixed(2)
+
+
+      await fetch(url)
+            .then(resp => resp.json())
+            .then(data => {
+              
+                console.log(data) 
+                weather = data.weather.currently
+                
+                /* if(data.air_quality.results["INO"]) {
+                    for(measure of data.air_quality.results["INO"].measurements) {
+                        if(measure["parameter"] == "um010") 
+                            air = measure 
+                }*/
+                
+              /*  for(measure of data.air_quality.results[0].measurements) {
+                    if(measure["parameter"] == "um010") 
+                        air = measure    
+                } */
+
+                air = data.air_quality.results[0].measurements[0]
+                document.getElementById('summary').textContent = data.weather.weather[0].description   //   weather.summary 
+                document.getElementById('temp').textContent =  data.weather.main.feels_like  // weather.temperature
+                document.getElementById('aq_parameter').textContent = air.parameter
+                document.getElementById('aq_value').textContent = air.value
+                document.getElementById('aq_units').textContent = air.unit
+                document.getElementById('aq_date').textContent = air.lastUpdated
+
+            })
+            .catch(e => {
+              Tools.cliError(e);
+              air = { value: -1 };
+              document.getElementById('aq_value').textContent = 'NO READING'    //  TODO: la mise a jour des document devrait etre ailleur que dans la fonction générique Tools.
+            })
+
+      } catch(e) { alert('Error: '+e.message) }
+    
+}
+
+if(Tools.isGeoLocAvailable()) { updateGeoData() }  
+
+</script>
 </body>
 </html>
