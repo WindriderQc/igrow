@@ -4,8 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -31,8 +31,8 @@
     "express-session": "^1.17.1",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.1",
-    "mongodb": "^3.6.4",
-    "mongoose": "^5.8.10",
+    "mongodb": "^3.7.2",
+    "mongoose": "^5.13.13",
     "mqtt": "^4.2.6",
     "node-fetch": "^2.6.1",
     "nodemon": "^2.0.2",

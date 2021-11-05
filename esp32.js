@@ -106,51 +106,28 @@ const esp32 = {
     return config
   },
   
+
   saveEspPost: async (data, pathDB) =>
   {
-      
-    const option = {
-      method: 'POST',
-      headers: {      "Content-type": "application/json"    },
-      body: JSON.stringify(data)
-    }
+    const option = { method: 'POST', headers: { "Content-type": "application/json" }, body: JSON.stringify(data)    }
   
     try {
-      const rawResponse = await fetch(pathDB, option);
-      const r = await rawResponse.text()
-  
-      if (r === 'Access Denied') { console.log(r) }
-      else {
-        try {
-          const result = JSON.parse(r)
-  
-          if (result.sender) {       /* console.log('Success: ' + result.sender)  */        }
-          else {        console.log('Error: ' + result)  }
-        } catch (error) {
-          console.log(r)
-        }
-        
-      }
-  
+      const rawResponse = await fetch(pathDB, option);  // const r = await rawResponse.text()
+      const r = await rawResponse.json()
+      if(r.status === 'success')  {/* // console.log(r.data.sender) */ } else console.log(r.status, r.message ) 
     }
     catch (err) { console.log(err) }
-     
   },
   
+
   setESPConfig: async (espID, mqttclient) => 
   {
     const t = 'esp32/' + espID + '/config'
     const config = await esp32.getESPConfig(espID)
     const c1 =  JSON.stringify(config)
-  
-   // mqttclient.publish(t+"/start", "")
     mqttclient.publish(t, c1 )
-   // mqttclient.publish(t +"/done", "" )
-
-
   }
+
   
 }
-
-
 module.exports = esp32

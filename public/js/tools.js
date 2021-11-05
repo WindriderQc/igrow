@@ -40,11 +40,9 @@ const Tools = {
         },
   
         
-
     randomScalingFactor: () => {
             return Math.round(Math.random() * 100)
         },
-
 
 
     randomData: () => {
@@ -57,6 +55,11 @@ const Tools = {
         },
 
 
+    random_hex_color_code: () => {
+        let randomColor = Math.floor(Math.random()*16777215).toString(16);
+        return "#" + randomColor
+        },
+    
 
     randomValue : (data) => {
             return Math.max.apply(null, data) * Math.random()
@@ -89,8 +92,23 @@ const Tools = {
                 .catch(console.error)
         }, 
     
+    // converts from Longitude/Latitude to Graphical x,y - Mercator
+    mercX : (lon) => {
+            lon = radians(lon);
+            var a = (256 / PI) * pow(2, zoom);
+            var b = lon + PI;
+            return a * b;
+        },
+    mercY : (lat) => {
+            lat = radians(lat);
+            var a = (256 / PI) * pow(2, zoom);
+            var b = tan(PI / 4 + lat / 2);
+            var c = PI - log(b);
+            return a * c;
+        },
+  
      
- formatTime : (timestamp) => {
+    formatTime : (timestamp) => {
             // Create a new JavaScript Date object based on the timestamp and retreive time value from it
             var date = new Date(timestamp);
             var hours = date.getHours();
@@ -123,7 +141,7 @@ const Tools = {
 
     isGeoLocAvailable: () => {
             const yesno = ('geolocation' in navigator)
-            console.log( yesno ? 'geolocation available' : 'geolocation not available')
+            console.log( yesno ? 'geolocation available:\n' : 'geolocation not available  :(')
             return yesno
         },
     
@@ -147,24 +165,27 @@ const Tools = {
                 console.log('User\'s Country', data.country);
                 return data
             } catch (error) {
-                    console.log('Request failed.  Returned status of', error);
+                 console.log('Request failed.  Returned status of', error);
             }
 
-        }, 
+    }, 
 
     getISS: async () => {
-            try { 
-                const api_url = 'https://api.wheretheiss.at/v1/satellites/25544';
-                const response = await fetch(api_url)
-                const data = await response.json()
+        try { 
+            const api_url = 'https://api.wheretheiss.at/v1/satellites/25544';
+            const response = await fetch(api_url)
+            const data = await response.json()
 
-                /*const response = await fetch('/data/iss')    //  pas besoin de passer par le serveur...   au pire passer l'info en ejs from liveData du server
-                const data = await response.json()*/
-                //console.log(data)
-                
-                return data
-            } 
-            catch (e) {  console.log(e)   }
-        }    
-        
+            /*const response = await fetch('/data/iss')    //  pas besoin de passer par le serveur...   au pire passer l'info en ejs from liveData du server
+            const data = await response.json()*/
+            //console.log(data)
+            
+            return data
+    } 
+    catch (e) {  console.log(e)   }
+    }
+ 
+
 }
+
+

@@ -29,7 +29,7 @@ router.route('/contacts/:contact_id')
     .delete(contactController.delete)
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const userController = require('../controllers/userController')
 
 router.post("/users/test", async (req, res) => {
@@ -48,7 +48,26 @@ router.route('/users/:user_id')
     .delete(userController.delete)
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const heartbeatController = require('../controllers/heartbeatController')
+
+router.route('/heartbeats')
+    .get(heartbeatController.index)
+    .post(heartbeatController.new)
+
+router.route('/heartbeats/deleteAll').get(heartbeatController.deleteAll)    
+router.route('/heartbeats/devices').get(heartbeatController.devices)
+router.route('/heartbeats/deviceLatest/:esp').get(heartbeatController.deviceLatest)
+router.route('/heartbeats/deviceOldest/:esp').get(heartbeatController.deviceOldest)
+router.route('/heartbeats/data/:options').get(heartbeatController.data)
+
+router.route('/heartbeats/:post_id')
+    .get(heartbeatController.byId)
+    .delete(heartbeatController.delete)
+
+
+
+
 const alarmController = require('../controllers/alarmController')
 
 router.route('/alarms')
@@ -56,11 +75,11 @@ router.route('/alarms')
     .post(alarmController.post)  
     .patch(alarmController.update)
 
-router.route('/alarms/:espID')
-    .get(alarmController.getbyEsp)
+router.route('/alarms/:espID,io').get(alarmController.getEspIO)
+router.route('/alarms/:espID').get(alarmController.getbyEsp)
 
-router.route('/alarms/:espID,io')
-    .get(alarmController.getEspIO)
+
+
 
 
 
@@ -70,8 +89,8 @@ let nodeTools = require('../nodeTools')
 const getMqtt = require('../serverMqtt').getMqttClient
 const moment = require('moment')
 
-router.route('/alarms/setAlarm')  
-    .post(async (req, res) => { // TODO:  devrait etre défini ailleur ptete?
+
+router.route('/alarms/setAlarm').post(async (req, res) => { // TODO:  devrait etre défini ailleur ptete?
 
     console.log('post received: Set_alarm')
     //console.log(JSON.stringify(req.body))

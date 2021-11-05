@@ -206,8 +206,10 @@ iot.mqClient.on('message', (topic, payload) => {
     }
     else  area.value = streamTextArray.join("\n"); 
    
-    if((topic.indexOf("alive") >=0) || topic.indexOf("data")) {
+    //console.log('message:', topic)
+    if((topic.indexOf("alive") >=0) || (topic.indexOf("data") >=0)) {
 
+ 
       try {
             let data = JSON.parse(payload)
             const sender = data.sender
@@ -221,9 +223,8 @@ iot.mqClient.on('message', (topic, payload) => {
             if (typeof data.wifi != 'undefined') {
                document.getElementById(sender+'rss_id_value_id').innerHTML =  data.wifi
                document.getElementById(sender+'temp_id_value_id').innerHTML =  data.CPUtemp
-
             }
-            else if(typeof data.battery != 'undefined') {
+            if(typeof data.battery != 'undefined') {
                document.getElementById(sender+'batt_id_value_id').innerHTML =  data.battery
                document.getElementById(sender+'humid_id_value_id').innerHTML =  data.airHumid
             }else{

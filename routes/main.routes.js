@@ -3,11 +3,14 @@ const fetch = require('node-fetch')
 //const verify = require('./verifyToken')
 const moment = require('moment')
 
-const dbs = require('../serverDB')
 const alarmController = require('../controllers/alarmController')
+const userController = require('../controllers/userController')
 const getMqtt = require('../serverMqtt').getMqttClient
 const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
+
+
+const mdb = require('../mongoCollections')
 
 const apiUrl = process.env.API_URL
 
@@ -31,54 +34,45 @@ const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env
 
 ////   free routes
 
-router.get("/", (req, res) => {
-    res.render('partials/login', {user: process.env.API_USER, pass: process.env.API_PASS  });
+router.get("/", async (req, res) => { 
+    const response = await fetch(apiUrl + '/api/heartbeats/devices')
+    const list = await response.json()
+    console.log(list)
+    res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
+   // res.render('index',    { name: req.session.email }) 
 }) 
 
-router.get("/login", (req, res) => {
-    res.render('partials/login', {user: process.env.API_USER, pass: process.env.API_PASS  });
-}) 
+router.get('/index',  async (req, res) => {  
+    const response = await fetch(apiUrl + '/api/heartbeats/devices')
+    const list = await response.json()
+    console.log(list)
+    res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
+})
 
 router.get("/iGrow", (req, res) => {  res.send('Hello')  })
 
-router.get('/live', (req, res) => {  res.render('live')  })
-
 router.get('/empty', (req, res) => {  res.render('empty') })
 
-///  LoggedIn routes
+router.get('/cams',  (req, res) => {  res.render('cams')  })
 
-const redirectLogin = (req, res, next) => {
-    //console.log(req.session)
-    if (!req.session.userToken) {
-        res.redirect('/login')
-    } else {
-        next()
-    }
-}
+const HeartbeatDB = require('../models/heartbeatModel')
 
-router.get('/index', redirectLogin, (req, res) => {  res.render('index', 
-    { name: req.session.email })  //console.log(req.session)
-})
-
-router.get('/cams', redirectLogin, (req, res) => {  res.render('cams')  })
-
-
-router.get('/device', redirectLogin, async (req, res) => {
-    const list = await dbs.getDevices()
+router.get('/device',  async (req, res) => {
+   
+    const list = await HeartbeatDB.distinct("sender")
 
     let selected;
     if(req.session.selectedDevice)  selected = req.session.selectedDevice
     else selected = list[0] 
-    
 
-    const alarmList = await alarmController.getAll()
-    //console.log(alarmList)
+    const alarmList = await alarmController.getAll() //console.log(alarmList)
 
     res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list, selected: selected, alarmList: alarmList})
 })
 
-router.get('/graphs', redirectLogin, async (req, res) => { 
-    const list = await dbs.getDevices()
+router.get('/graphs',  async (req, res) => { 
+    
+    const list = await HeartbeatDB.distinct("sender")
 
     let selected
     if(req.session.selectedDevice)  selected = req.session.selectedDevice
@@ -87,16 +81,33 @@ router.get('/graphs', redirectLogin, async (req, res) => {
     res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: selected })
 })
 
-router.get('/settings', redirectLogin, async (req, res) => {
-    const users = await dbs.getUsers()
-    res.render('settings', {users: users})
+
+const User = require('../models/userModel');
+
+router.get('/settings',  (req, res) => {
+
+    User.get((err, users)=> { 
+        if(err) console.log(err)
+        res.render('settings', {users: users})
+    })
+    
+})
+
+router.get('/iot',  async (req, res) => {
+  
+    const response = await fetch(apiUrl + '/api/heartbeats/devices')
+    const list = await response.json()
+    console.log(list)
+
+    res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
 })
 
 
 
-router.get('/iot', redirectLogin, async (req, res) => {
-    const list = await dbs.getDevices()
-    res.render('iot', { mqttinfo: mqttinfo, devices: list })
+router.get('/database',  (req, res) => {
+    const list = mdb.getCollections()
+    console.log('Sending collection list to client: ', list)
+    res.render('database', {collectionList: list })
 })
 
 router.get('/weather/:latlon', async (req, res) => {
@@ -141,7 +152,7 @@ router.get('/weather/:latlon', async (req, res) => {
 
 
 
-router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
+router.get('/deviceLatest/:esp',  async (req, res) => {
 
 
     let option = {
@@ -152,8 +163,11 @@ router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
     }
 
     try {
-        const response = await fetch(apiUrl + "/heartbeats/deviceLatest/" + req.params.esp, option)
-        const data = await response.json()
+        const response = await fetch(apiUrl + "/api/heartbeats/deviceLatest/" + req.params.esp, option)
+        const respData = await response.json()
+        const data = respData.data[0]
+        //console.log(data)
+
         if (!data) {
             const message = "Could not get data";
             return res.status(400).send(message);
@@ -161,21 +175,21 @@ router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
         else {
 
             let now =  new moment()
-            let stamp =  new moment(data[0].time).format('YYYY-MM-DD HH:mm:ss') 
+            let stamp =  new moment(data.time).format('YYYY-MM-DD HH:mm:ss') 
             let duration = new moment.duration(now.diff(stamp)).asHours();
      
-            data[0].lastConnect = duration
+            data.lastConnect = duration
 
-            if(data[0].wifi != -100) {
-                 if(duration > 0.001)
+            if(data.wifi != -100) {
+                 if(duration > 0.001)  
                  {
-                     console.log('Device disconnected !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                         data[0].wifi   = -100
-                         delete data[0]._id
-                         let dat = JSON.stringify(data[0])
-                         console.log(dat)
-                         let mq = getMqtt()
-                         mq.publish('esp32/alive/'+req.params.esp, dat)
+                    console.log('Device disconnected !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+                    data.wifi   = -100
+                    delete data._id
+                    let dat = JSON.stringify(data)
+                    console.log(dat)
+                    let mq = getMqtt()
+                    mq.publish('esp32/alive/'+req.params.esp, dat)  //  server sends a mqtt post on behalf of esp to log a last wifi -100 signal in db.
                  }
              }
 
@@ -190,8 +204,7 @@ router.get('/deviceLatest/:esp', redirectLogin, async (req, res) => {
 })
 
 
-
-router.get('/data/:options', redirectLogin, async (req, res) => {
+router.get('/data/:options',  async (req, res) => {
 
     const options = req.params.options.split(',')
     const samplingRatio = options[0]
@@ -203,30 +216,18 @@ router.get('/data/:options', redirectLogin, async (req, res) => {
 
     req.session.selectedDevice = espID
 
-    let option = {
-        method: 'GET',
-        headers: {
-            'auth-token': req.session.userToken
-        }
-    }
+    let option = { method: 'GET', headers: { 'auth-token': req.session.userToken  }    }
 
     try {
-        const response = await fetch(apiUrl + "/heartbeats/data/" + samplingRatio + "," + espID + ',' + dateFrom, option)
-        const data = await response.json()
-
-        if (!data) {
-            const message = "Could not get data";
-            return res.status(400).send(message);
-        }
-        else {
-            res.json(data)
-        }
-
+        const response = await fetch(apiUrl + "/api/heartbeats/data/" + samplingRatio + "," + espID + ',' + dateFrom, option)
+        const respData = await response.json()
+        const data = respData.data
+        res.json(data)
     }
     catch (err) {
         console.error(err)
+        return res.status(400).send("Could not get data");
     }
-
 
 })
 
@@ -243,41 +244,4 @@ router.post('/set_io', (req, res) => {
 })
 
 
-
-
 module.exports = router;
-
-/*//  NeDB 
-const Datastore = require('nedb')
-const picDb = new Datastore('pics.db');
-picDb.loadDatabase();
-
-router.get('/api', (request, response) => {
-    picDb.find({}, (err, data) => {
-        if (err) { response.end(); return; }
-        response.json(data);
-    });
-});
-
-// delete complete DB
-function resetNeDB() {
-    console.log("reset DB.")
-    var database = getDb()
-
-    database.remove({}, { multi: true }, (err, numRemoved) => {
-        database.loadDatabase((err) => {
-            // db erase done
-        })
-    })
-
-}
-database.find({io_id:io_id}).sort({tstamp:-1}).limit(1).exec( (err, latest) =>{
-        if(err) { console.log(err); res.end(); return } 
-        var r = latest
-        topAlarms.push(r)
-        return r
-})
-*/
-
-
-

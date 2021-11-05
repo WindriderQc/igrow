@@ -1,9 +1,6 @@
 const Alarm = require('../models/alarmModel')
 
 exports.index = async (req, res) => {
-    
-      //  const alarms = await alarmDB.getAll()
-       // res.json(alarms)
 
     try{
         const alarms = await Alarm.find()

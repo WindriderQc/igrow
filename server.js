@@ -3,7 +3,6 @@ const express = require('express'),
 session = require('express-session'),
 serveIndex = require('serve-index'),
 path = require('path'),
-mongoose = require('mongoose'),
 cors = require('cors')
 //rateLimit = require('express-rate-limit'),
 
@@ -34,28 +33,13 @@ app.set('view engine', 'ejs')
 // Connect to DBs
 
 // mongoose with local DB
-mongoose.connect( process.env.DB_CONNECTION, { family: 4, useNewUrlParser: true, useUnifiedTopology: true })// family: 4    skip  default IPV6 connection  and accelerate connection.
-
-mongoose.connection.on('error', console.error.bind(console, 'conn error:'))
-
-mongoose.connection.once('open', function() { 
-    console.log('Mongoose connected to db: ' + process.env.DB_CONNECTION) 
-   
-    mongoose.connection.db.listCollections().toArray( (err, collections) => {   //trying to get collection names
-        console.log("LocalDB collections:")
-        console.log(collections); // [{ name: 'dbname.myCollection' }]
-       // module.exports.Collection = collections;
-    });
-
-})
-
+require('./mongoCollections')
 
 
 //Mongodb Client setup  with CloudDB
 const mongo = require('./mongo')
 
 mongo.connectDb('test', async (mongodb) =>{    // dbServ, test, admin, local 
-
     app.locals.collections = [] 
     const list = await mongo.getCollectionsList()
 
@@ -65,8 +49,7 @@ mongo.connectDb('test', async (mongodb) =>{    // dbServ, test, admin, local
         app.locals.collections[coll.name] = mongo.getDb(coll.name)
     }
     //db.createCollection('server')
-    app.locals.collections.server.insertOne({ name: "dbServer boot", date: Date.now() })   //   TODO:  Server may not exist
-
+    app.locals.collections.server.insertOne({ name: "dbServer boot", date: Date.now() }, (err) => { console.log(err) })   
 })
 
 
@@ -96,15 +79,10 @@ app
     .use(session(sessionOptions))
     .use(express.static(path.resolve(__dirname, 'public') )) 
     
-    .use('/', require('./routes/mainRoutes.js')) 
-    .use('/login', require('./routes/login.routes.js'))
-    .use('/heartbeats', require('./routes/heartbeats.js'))
-    //.use('/iot/alarms', require('./routes/alarms.js'))
+    .use('/', require('./routes/main.routes.js')) 
     .use('/api', require("./routes/api.routes"))
-    //app.use('/geo', require("./routes/geo.routes"))
-    .use('/server', require("./routes/server.routes"))
-    //.use('/keeper', require("./routes/keeper.routes"))
-     .use('/Projects',    serveIndex(path.resolve(__dirname, 'public/Projects'), {  'icons': true,  'stylesheet': 'public/css/indexStyles.css' } )) // use serve index to nav folder  (Attention si utiliser sur le public folder, la racine (/) du site sera index au lieu de html
+    .use('/database', require("./routes/database.routes"))
+    .use('/Projects',    serveIndex(path.resolve(__dirname, 'public/Projects'), {  'icons': true,  'stylesheet': 'public/css/indexStyles.css' } )) // use serve index to nav folder  (Attention si utiliser sur le public folder, la racine (/) du site sera index au lieu de html
 
 
 // Launching server
@@ -120,5 +98,3 @@ console.log("Launching Mqtt")
 require('./serverMqtt').initMqtt()
 
 
-let liveDatas = require('./liveData.js')
-console.log("Setting live data  :  v" + liveDatas.data.version)

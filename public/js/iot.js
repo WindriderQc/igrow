@@ -79,7 +79,7 @@ class Iot {
            const latest =  await fetch('/deviceLatest/' + esp)
            const result = await latest.json()
   
-            document.getElementById(esp + '_li2').innerHTML = result[0].lastConnect.toFixed(4) 
+            document.getElementById(esp + '_li2').innerHTML = result.lastConnect.toFixed(4) 
              
      
         })

@@ -53,8 +53,10 @@ function initMqtt()
       }
       else if (topic.indexOf('esp32/alive/') >= 0) 
       { 
+        
           let msg = JSON.parse(message)
-          esp32.saveEspPost(msg, apiUrl + '/heartbeats')
+        //  console.log("Message: ", msg)
+          esp32.saveEspPost(msg, apiUrl + '/api/heartbeats')
       }
       else if (topic == 'esp32/sensors') 
       {
