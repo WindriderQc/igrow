@@ -70,6 +70,12 @@ message: error.message
 })
 */
 
+
+
+
+ 
+
+
 //Middlewares & routes
 app
     .use(cors())    //.use(cors({    origin: '*',    optionsSuccessStatus: 200  }  ))
@@ -78,7 +84,6 @@ app
     //.use(rateLimit({ windowMs: 30 * 1000, max: 1 }))  //  prevents a user to crash server with too many request, altough with ESP32 sending heartbeat fast.. this cannot be set
     .use(session(sessionOptions))
     .use(express.static(path.resolve(__dirname, 'public') )) 
-    
     .use('/', require('./routes/main.routes.js')) 
     .use('/api', require("./routes/api.routes"))
     .use('/database', require("./routes/database.routes"))
