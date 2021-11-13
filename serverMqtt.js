@@ -1,12 +1,11 @@
 require('dotenv').config()
-const mqtt = require('mqtt')
-//const fs = require('fs')
-const assert = require('assert')
-const fetch = require("node-fetch")
-const moment = require('moment')
-const esp32 = require('./esp32')
 
-const apiUrl = process.env.API_URL
+const mqtt = require('mqtt'),
+ assert = require('assert'),
+ fetch = require('node-fetch'),
+ moment = require('moment'),
+ esp32 = require('./esp32'),
+ apiUrl = process.env.API_URL
 
 
 let mqtt_
@@ -21,9 +20,7 @@ const mqttOptions = {
 
 function initMqtt() 
 {
-    if (mqtt_) {   console.warn("Already initialized and Trying to init MQTT again!")
-      return mqtt_
-    }
+    if (mqtt_) {   console.warn("Already initialized and Trying to init MQTT again!");   return mqtt_    }
 
     console.log('Attempting connection...')
 
@@ -38,36 +35,27 @@ function initMqtt()
     })
     
     mqttclient.on('message', async (topic, message) => {
-      
-      if (topic == 'esp32/boot') 
-      {
-        printmsg(topic, message) //  message is an arrayBuffer and contains ESP_ID
-        esp32.setESPConfig(message, mqttclient)
-
-        const rawResponse = await fetch(apiUrl + '/api/alarms/' + message); 
-        const alarms = await rawResponse.json()
-        for( als of alarms) {
-          mqttclient.publish('esp32/' + message + '/io/sunrise', "" + als.io + ":" + moment(als.tStart).format('HH:mm:ss'))
-          mqttclient.publish('esp32/' + message + '/io/nightfall',"" + als.io + ":" + moment(als.tStop).format('HH:mm:ss'))
+        if (topic == 'esp32/boot') //  message is an arrayBuffer and contains ESP_ID
+        {
+            printmsg(topic, message) 
+            esp32.setConfig(message, mqttclient)
+            esp32.setAlarms(message, mqttclient)
         }
-      }
-      else if (topic.indexOf('esp32/alive/') >= 0) 
-      { 
-        
-          let msg = JSON.parse(message)
-        //  console.log("Message: ", msg)
-          esp32.saveEspPost(msg, apiUrl + '/api/heartbeats')
-      }
-      else if (topic == 'esp32/sensors') 
-      {
-        let msg = message.toString()
-        let data = JSON.parse(msg)
-        console.log(data)
-        if(data.action_type == 'btnBlue'  && data.value == '1') {   //  {"device":"ESP_15605", "io":"BLUE", "action_type":"btnBlue", "value": "1"}
-         // waterburst();  //  TODO :    a rendre solide...   architecture de merde...
+        else if (topic.indexOf('esp32/alive/') >= 0) 
+        { 
+            let heartbeat = JSON.parse(message)//  console.log("Message: ", heartbeat)
+            esp32.saveEspPost(heartbeat, apiUrl + '/api/heartbeats')
         }
-      }
-      else { printmsg(topic, message) }  // prints all other messages to console   
+        else if (topic == 'esp32/sensors') 
+        {
+            let msg = message.toString()
+            let data = JSON.parse(msg)
+            console.log(data)
+            if(data.action_type == 'btnBlue'  && data.value == '1') {   //  {"device":"ESP_15605", "io":"BLUE", "action_type":"btnBlue", "value": "1"}
+            // waterburst();  //  TODO :    a rendre solide...   architecture de merde...
+            }
+        }
+        else { printmsg(topic, message) }  // prints all other messages to console   
     })
 
 
@@ -79,24 +67,17 @@ function initMqtt()
 function printmsg(topic, message) 
 {
     let msg
-    try {
-      msg = JSON.parse(message)
-
-    }
-    catch (err) {
-      msg = message.toString()
+    try {         msg = JSON.parse(message)    }
+    catch (err) { 
+        console.log('Could not parse JSON. Converting to string...')  
+        msg = message.toString()
     }
     console.log(topic)
     console.log(msg)
 }
 
 
-function getMqttClient() {
-  assert.ok(mqtt_, "Mqtt has not been initialized. Please called init first.")
-  return mqtt_
-}
-
-
+function getMqttClient() {  assert.ok(mqtt_, "Mqtt has not been initialized. Please called init first.");  return mqtt_  }
 
 
 module.exports = {

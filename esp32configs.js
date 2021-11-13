@@ -2,6 +2,22 @@
 const espConfigs = 
 [
     {
+        id: "DEFAULT",
+        config: [  
+             { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
+            ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
+            ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
+            ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
+            ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
+            // ,{ io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
+            // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
+            // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" }
+            ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
+            ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
+            ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
+            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]      
+    },
+    {
         id: "ESP_38990",
         config: [
              { io: "2",  mode: "IN", lbl: "A0",  isA: "0", pre: "none" } 
@@ -25,23 +41,30 @@ const espConfigs =
             ,{ io: "18", mode: "IN", lbl: "D13", isA: "0", pre: "none" } ]
     },
     {
-        id: "DEFAULT",
+        id: "ESP_15605",
         config: [  
-             { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
-            ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
-            ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
-            ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
-            ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
-        
-        // { io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
-            // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
-            // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" }
-        
-            ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
-            ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
-            ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
-            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]
-            
+            { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
+           ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
+           ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
+           ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
+           ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
+           ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
+           ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
+           ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
+           ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]
+    },
+    {
+        id: "ESP_21737",
+        config: [  
+            { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
+           ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
+           ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
+           ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
+           ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" }        
+           ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
+           ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
+           ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
+           ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]
     }
 ]
 

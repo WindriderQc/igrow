@@ -1,9 +1,10 @@
 const fetch = require("node-fetch")
 const configs = require('./esp32configs')
+const apiUrl = process.env.API_URL
 
 
 const esp32 = {
-  getESPConfig: async (espID) =>    //  TODO : SHOULD BE dans la BD
+  getConfig: async (espID) =>    //  TODO : SHOULD BE dans la BD
   {
      
     console.log('testing json array: ', configs)
@@ -103,7 +104,6 @@ const esp32 = {
 
       }
 
-
     return config
   },
   
@@ -121,12 +121,22 @@ const esp32 = {
   },
   
 
-  setESPConfig: async (espID, mqttclient) => 
+  setConfig: async (espID, mqttclient) => 
   {
     const t = 'esp32/' + espID + '/config'
     const config = await esp32.getESPConfig(espID)
     const c1 =  JSON.stringify(config)
     mqttclient.publish(t, c1 )
+  },
+
+  setAlarms: async(espID, mqttclient) => 
+  {
+        const rawResponse = await fetch(apiUrl + '/api/alarms/' + espID);   
+        const alarms = await rawResponse.json()
+        for( als of alarms) {
+            mqttclient.publish('esp32/' + espID + '/io/sunrise', "" + als.io + ":" + moment(als.tStart).format('HH:mm:ss'))
+            mqttclient.publish('esp32/' + espID + '/io/nightfall',"" + als.io + ":" + moment(als.tStop).format('HH:mm:ss'))
+        }
   }
 
   
