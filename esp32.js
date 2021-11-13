@@ -1,11 +1,12 @@
 const fetch = require("node-fetch")
-
+const configs = require('./esp32configs')
 
 
 const esp32 = {
   getESPConfig: async (espID) =>    //  TODO : SHOULD BE dans la BD
   {
      
+    console.log('testing json array: ', configs)
     let config = []
 
     if(espID.indexOf("ESP_38990") >= 0) {   //   TODO:  still WEMOSIO??

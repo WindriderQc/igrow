@@ -1,27 +1,11 @@
-// find if a point (x,y) is within a circle:
-//si  RacineCarré de (x^2 + y^2)    <= Rayon
+//  Client-side Javascript tools + p5.js and data gathering 
 
 const Tools = {
-
-    getParamValue: (paramName) =>{
-            var url = window.location.search.substring(1) //get rid of "?" in querystring
-            var qArray = url.split('&') //get key-value pairs
-            for (var i = 0; i < qArray.length; i++) 
-            {
-                var pArr = qArray[i].split('=') //split key and value
-                if (pArr[0] == paramName) 
-                    return pArr[1]; //return value
-            }
-            return ""
-        },
-
-
-        
+    
     sleep: (ms) =>{
             return new Promise(resolve => setTimeout(resolve, ms))
         },
    
-
       
     fillForm: (formId, data) => {
             const { elements } = document.getElementById(formId)
@@ -66,8 +50,7 @@ const Tools = {
         },
 
   
-
-    postData : async (url = '', data='') => {  
+    postData : async (url = '', data='') => {   //  Used to send command to ESP-01 from client
             let option = {
             method: 'POST',
             headers: {
@@ -91,21 +74,6 @@ const Tools = {
                 .then(console.log)
                 .catch(console.error)
         }, 
-    
-    // converts from Longitude/Latitude to Graphical x,y - Mercator
-    mercX : (lon) => {
-            lon = radians(lon);
-            var a = (256 / PI) * pow(2, zoom);
-            var b = lon + PI;
-            return a * b;
-        },
-    mercY : (lat) => {
-            lat = radians(lat);
-            var a = (256 / PI) * pow(2, zoom);
-            var b = tan(PI / 4 + lat / 2);
-            var c = PI - log(b);
-            return a * c;
-        },
   
      
     formatTime : (timestamp) => {
@@ -169,23 +137,94 @@ const Tools = {
             }
 
     }, 
+  
 
-    getISS: async () => {
-        try { 
-            const api_url = 'https://api.wheretheiss.at/v1/satellites/25544';
-            const response = await fetch(api_url)
-            const data = await response.json()
+    data: {
 
-            /*const response = await fetch('/data/iss')    //  pas besoin de passer par le serveur...   au pire passer l'info en ejs from liveData du server
-            const data = await response.json()*/
-            //console.log(data)
-            
-            return data
-    } 
-    catch (e) {  console.log(e)   }
+        iss_location: async () => {
+            try { 
+                //let url = 'http://api.open-notify.org/iss-now.json'
+                const api_url = 'https://api.wheretheiss.at/v1/satellites/25544';
+                const response = await fetch(api_url)
+                const data = await response.json()
+    
+                /*const response = await fetch('/data/iss')    //  pas besoin de passer par le serveur...   au pire passer l'info en ejs from liveData du server
+                const data = await response.json()*/
+                //console.log(data)
+                  
+                return data
+            } 
+            catch (e) {  console.log(e)   }
+        }
+        /* with P5:
+            let Iss
+            function getISS_location()   {
+                let url = 'http://api.open-notify.org/iss-now.json'
+                loadJSON(url, (data) => Iss = data )
+            }
+            setInterval(getISS_location, 1000)
+        */
+
+    },
+    
+    //  P5 libraries must be loaded in order to use these functions, usually within setup() and draw() 
+    p5: {
+
+        displayGrid: (r,l, color = 0, weight = 1) => {  //  smallest weight = 1 pixel         
+            for (var x = -width/2; x < width/2; x += width / r) {
+                for (var y = -height/2; y < height/2; y += height / l) {
+                    stroke(color);
+                    strokeWeight(weight);
+                    line(x, -height/2, x, height/2);
+                    line(-width /2, y, width/2, y);
+                }
+            }
+        },
+
+        // converts from Longitude/Latitude to Graphical x,y - Mercator
+        mercX : (lon) => {
+            lon = radians(lon);
+            var a = (256 / PI) * pow(2, zoom);
+            var b = lon + PI;
+            return a * b;
+        },
+
+        mercY : (lat) => {
+            lat = radians(lat);
+            var a = (256 / PI) * pow(2, zoom);
+            var b = tan(PI / 4 + lat / 2);
+            var c = PI - log(b);
+            return a * c;
+        },
+
+        getMercatorCoord: (lon, lat, offsetx = 0, offsety = 0) => {   //  center offset
+            let cx = Tools.p5.mercX(offsetx) 
+            let cy = Tools.p5.mercY(offsety)
+
+            let x = Tools.p5.mercX(lon) - cx; 
+            let y = Tools.p5.mercY(lat) - cy; 
+
+            return ({x,y})
+        },
+
+
+        getSphereCoord: (rayon, latitude, longitude ) => {
+            // original version -> float theta = radians(lat) + PI/2;
+            var theta = radians(latitude);// fix: no + PI/2 needed, since latitude is between -180 and 180 deg
+            var phi = radians(longitude) + PI;
+            // fix: in OpenGL, y & z axes are flipped from math notation of spherical coordinates
+            var x = rayon * cos(theta) * cos(phi);
+            var y = -rayon * sin(theta);
+            var z = -rayon * cos(theta) * sin(phi);
+        
+            let vecCoord = createVector(x,y,z);
+        
+            return vecCoord
+        }
+
     }
- 
 
 }
 
-
+// find if a point (x,y) is within a circle:
+//si  RacineCarré de (x^2 + y^2)    <= Rayon
