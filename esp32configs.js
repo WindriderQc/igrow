@@ -3,50 +3,50 @@ const espConfigs =
 [
     {
         id: "ESP_38990",
-        config: 
-            [ { io: 2,  mode: "IN", lbl: "A0",  isA: 0, pre: "none" } 
-            ,{ io: 4,  mode: "IN", lbl: "A1",  isA: 0, pre: "none" }
-            ,{ io: 35, mode: "INPULL", lbl: "A2",  isA: 1,  pre: "none" }
-            ,{ io: 34, mode: "INPULL", lbl: "A3",  isA: 1,  pre: "none" }
-            ,{ io: 36, mode: "INPULL", lbl: "A4",  isA: 1,  pre: "none" }
-            ,{ io: 39, mode: "INPULL", lbl: "A5",  isA: 1,  pre: "none" }
+        config: [
+             { io: "2",  mode: "IN", lbl: "A0",  isA: "0", pre: "none" } 
+            ,{ io: "4",  mode: "IN", lbl: "A1",  isA: "0", pre: "none" }
+            ,{ io: "35", mode: "INPULL", lbl: "A2",  isA: "1",  pre: "none" }
+            ,{ io: "34", mode: "INPULL", lbl: "A3",  isA: "1",  pre: "none" }
+            ,{ io: "36", mode: "INPULL", lbl: "A4",  isA: "1",  pre: "none" }
+            ,{ io: "39", mode: "INPULL", lbl: "A5",  isA: "1",  pre: "none" }
 
-            ,{ io: 26, mode: "IN", lbl: "D2",  isA: 0, pre: "none" }
-            ,{ io: 25, mode: "IN", lbl: "D3",  isA: 0, pre: "none" }
-            ,{ io: 17, mode: "IN", lbl: "D4",  isA: 0, pre: "none" }
-            ,{ io: 16, mode: "IN", lbl: "D5",  isA: 0, pre: "none" }
-            ,{ io: 27, mode: "IN", lbl: "D6",  isA: 0, pre: "none" }
-            ,{ io: 14, mode: "IN", lbl: "D7",  isA: 0, pre: "none" }
-            ,{ io: 12, mode: "IN", lbl: "D8",  isA: 0, pre: "none" }
-            ,{ io: 13, mode: "IN", lbl: "D9",  isA: 0, pre: "none" }
+            ,{ io: "26", mode: "IN", lbl: "D2",  isA: "0", pre: "none" }
+            ,{ io: "25", mode: "IN", lbl: "D3",  isA: "0", pre: "none" }
+            ,{ io: "17", mode: "IN", lbl: "D4",  isA: "0", pre: "none" }
+            ,{ io: "16", mode: "IN", lbl: "D5",  isA: "0", pre: "none" }
+            ,{ io: "27", mode: "IN", lbl: "D6",  isA: "0", pre: "none" }
+            ,{ io: "14", mode: "IN", lbl: "D7",  isA: "0", pre: "none" }
+            ,{ io: "12", mode: "IN", lbl: "D8",  isA: "0", pre: "none" }
+            ,{ io: "13", mode: "IN", lbl: "D9",  isA: "0", pre: "none" }
                 //DigitalInput _D10( 5, "D10");  //  GPIO 5 seems unusable
-            ,{ io: 23, mode: "IN", lbl: "D11", isA: 0, pre: "none" }
-            ,{ io: 19, mode: "IN", lbl: "D12", isA: 0, pre: "none" }
-            ,{ io: 18, mode: "IN", lbl: "D13", isA: 0, pre: "none" } ]
+            ,{ io: "23", mode: "IN", lbl: "D11", isA: "0", pre: "none" }
+            ,{ io: "19", mode: "IN", lbl: "D12", isA: "0", pre: "none" }
+            ,{ io: "18", mode: "IN", lbl: "D13", isA: "0", pre: "none" } ]
     },
     {
         id: "DEFAULT",
-        config = [  
-                { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
-                ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
-                ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
-                ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
-                ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
-            
-            // { io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
-                // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
-                // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" }
-            
-                ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
-                ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
-                ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
-                ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]
+        config: [  
+             { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
+            ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
+            ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
+            ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
+            ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
+        
+        // { io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
+            // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
+            // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" }
+        
+            ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
+            ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
+            ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
+            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]
             
     }
 ]
 
 
-module.exports = esp32configs
+module.exports = espConfigs
  // IO Configuration
   // ESP32 HUZZAH32
  
