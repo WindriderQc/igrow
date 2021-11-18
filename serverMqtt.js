@@ -2,8 +2,7 @@ require('dotenv').config()
 
 const mqtt = require('mqtt'),
  assert = require('assert'),
- fetch = require('node-fetch'),
- moment = require('moment'),
+ //fetch = require('node-fetch'),
  esp32 = require('./esp32'),
  apiUrl = process.env.API_URL
 
@@ -38,13 +37,8 @@ function initMqtt()
         if (topic == 'esp32/boot') //  message is an arrayBuffer and contains ESP_ID
         {
             printmsg(topic, message) 
-            esp32.setConfig(message, mqttclient)
-            esp32.setAlarms(message, mqttclient)
-        }
-        else if (topic.indexOf('esp32/alive/') >= 0) 
-        { 
-            let heartbeat = JSON.parse(message)//  console.log("Message: ", heartbeat)
-            esp32.saveEspPost(heartbeat, apiUrl + '/api/heartbeats')
+            esp32.setConfig(message.toString(), mqttclient)
+            esp32.setAlarms(message, mqttclient)   //  TODO:  valider pkoi ca marche ici direct avec le buffer sans conversion string
         }
         else if (topic == 'esp32/sensors') 
         {
@@ -55,6 +49,11 @@ function initMqtt()
             // waterburst();  //  TODO :    a rendre solide...   architecture de merde...
             }
         }
+        else if (topic.indexOf('esp32/alive/') >= 0) 
+        { 
+            let heartbeat = JSON.parse(message)//  console.log("Message: ", heartbeat)
+            esp32.saveEspPost(heartbeat, apiUrl + '/api/heartbeats')
+        }
         else { printmsg(topic, message) }  // prints all other messages to console   
     })
 
@@ -62,6 +61,7 @@ function initMqtt()
     mqtt_ = mqttclient
     return mqtt_
 }
+
 
 
 function printmsg(topic, message) 

@@ -2,39 +2,34 @@
 <html lang="en">
 
 <head>
+
     <%- include('partials/head') %> 
 
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
-
-    <script type="text/javascript" src="js/iot.js"></script>  
+  
 </head>
 
 
 <body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
 
-<script>
-    const mqttlogin = JSON.parse('<%- mqttinfo %>')
-    const devicesList =  <%- JSON.stringify(devices) %>
-   
-    console.log(devicesList)
-    let iot = new Iot(mqttlogin, devicesList )
 
- </script>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">    <%- include('partials/nav') %>  </nav>
 
-      
-
-    <div class="content-wrapper">
-        <div class="container-fluid bg-3">
-
-            <select class="mx-2 form-control" id="devices_select" onchange=iot.updateSelected()></select>
+<div class="content-wrapper">
+<div class="container-fluid bg-3">
 
             <div class="row pl-1 mb-2">
+                <div class="col-sm-12 px-1">
+                    <div class='card shadow'>
+                        <select class="mx-2 my-2 form-control" id="devices_select" onchange=onSelectChange()  style="width:auto;"></select>
+                    </div>
+                </div>
+            </div>
 
-                <div class="col-sm-4 px-1">
+            <div class="row pl-1 mb-2">
+                <div class="col-sm-5 px-1">
                     <div class='card shadow'>
                         
                         <a href="#collapseOutput" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseOutput">
@@ -43,61 +38,60 @@
                         <div class="collapse show" id="collapseOutput">
                          
                             <form>
-                                <% ioList.forEach(item =>{ %>   
-                                     <%- include('partials/ioCtrl', {item:item}) %>       
+                                <% configs.forEach(cfg =>{ %> 
+
+                                    <% if(cfg.id == selected) { %>
+                                    
+                                        <% cfg.config.forEach(io =>{ %>   
+
+                                            <div class='row px-4 py-2'>
+
+                                                <div class='col-sm-2'>
+                                                    <div class='row'>
+                                                        <div class='form-inline form-text mb-2 mr-2'>
+                                                            <small><i class="fa fa-tags"></i><span id="io_span"> <%=io.io %></span></small>
+                                                        </div>   
+                                                    </div>
+                                                </div>
+
+                                                <div class='col-sm-3'>
+                                                    <div class='row'>
+                                                        <div class='form-inline form-text mb-2 mr-2'>
+                                                            <span id="name_span"><%= io.name %></span>
+                                                        </div> 
+                                                    </div>
+                                                </div>
+ 
+
+                                                <% if(io.mode == "OUT") { %>
+                                                    <div class='col-sm-7 form-inline'>
+                                                        <button type='button' class="btn btn-success" value='<%= io.io %>' onclick="sendSetIO({io:this.value, state:'on'})">ON</button>
+                                                        <button type='button' class="btn btn-warning" value='<%= io.io %>' onclick="sendSetIO({io:this.value, state:'off'})">OFF</button>
+                                                    </div>
+                                                <% } else { %>
+                                                    <div class='col-sm-7 form-inline'>
+                                                        <span id="io_span"> <%=io.lbl %></span>
+                                                    </div>
+
+                                                <% } %>
+
+                                            </div>
+
+                                        <% }) %>
+
+                                    <% } %>
+
                                 <% }) %>
                             </form>
-                                  
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-sm-5 px-1">
-                    <div class="card shadow">
-                        <a href="#collapseWater" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseWater">
-                            <p class="m-0 font-weight-bold text-secondary">Watering</p>
-                        </a>
-
-                        <div class="collapse show" id="collapseWater">
-                            <div class="card-body">
-
-                            <form  >
-                                <input type="button" class="btn btn-primary" onclick="waterburst()" value="Water Burst">
-                            </form>
-
-                            <p>Relay Actions:</p>
-                            <form action="http://192.168.0.212/RELAY" method="post"> 
-                                <input type="submit" class="btn btn-primary" value="Toggle Relay">
-                                <input type="hidden" name="state" value="TOGGLE">
-                            </form>
-                            <form action="http://192.168.0.212/RELAY" method="post"> 
-                                <input type="submit" class="btn btn-primary" value="ON">
-                                <input type="hidden" name="state" value="ON">
-                            </form>
-                            <form action="http://192.168.0.212/RELAY" method="post"> 
-                                <input type="submit" class="btn btn-primary" value="OFF">
-                                <input type="hidden" name="state" value="OFF">
-                            </form>                            
-
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-sm-3 px-1">
-                    <div class="card shadow ">
-                        <a href="#collapseWifi" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseWifi">
-                            <p class="m-0 font-weight-bold text-secondary">Wifi Signal Strength</p>
-                        </a>
-
-                        <div class="collapse show my-2" id="collapseWifi">
-                                                           
-                                <%- include('partials/graph/rssGauge', { name: "Wifi", defaultValue: -100, units: "dbA",  smWidth: 12, domID: "ESP_35030rss_id",  divHeight: "248px" }); %>
-                           
-                        </div>
-
-                    </div>
+                    <%- include('partials/waterburst') %> 
                 </div>
+
 
             </div>
 
@@ -218,134 +212,47 @@
                             </div>
                         </div>
                     </div>
-                </div>
+</div>
+</div>
 
-
-
-            </div>
-
-            <div class='row'>
-                 <p id='latestData'>data</p>
-            </div>
+<div class='row'>
+        <p id='latestData'>data</p>
+</div>
 
 
 
 <script>
 
-
-/*
-There are a few 'gotchas' in the ESP8266WebServer's implementation. I have found the body shows up in the
-server.arg("plain")
-but only if the class cannot find any key value pairs. The ESP8266WebServer will look for an '=' and only if it cannot find one will it put the body in the "plain" arg.
-This arg will contain the full body so you will have to parse the JSON yourself. I have found ArduinoJson to be a very easy to use library to do so.
-Short example:
-void handleRequest() {  
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
-  root.printTo(Serial);
-}
-On a sidenote. If you are testing with a POSTMAN like tool, do not forget to set the 'Content-length'. ESP8266WebServer will treat your body as empty (or of a different length) if it does not correspond with this header value.
-Hope this answers your question.*/
-async function waterburst()
-{
-    console.log ('waterburst post received, sending relay request:')
-  try {
-        Tools.postData("http://192.168.0.212/RELAY", 'state=ON')
-      
-        Tools.sleep(3000)
-        Tools.postData("http://192.168.0.212/RELAY", 'state=OFF')
-  }
-  catch (err) {
-      console.error(err)
-  }
-}
+    const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why
+    const devicesList =  <%- JSON.stringify(devices) %>;
+    const configs =  <%- JSON.stringify(configs) %>;
+    const alarmList =  <%- JSON.stringify(alarmList) %>;
+    const apiUrl =  <%- JSON.stringify(apiUrl) %>;
 
 
+let selectedDevice = ""
+let selectDom = document.getElementById('devices_select')
+let changeCallback = null
 
 
-function updateHiddenSelected() {
-    document.getElementById('device_id').value = iot.selectedDevice
-}
-
-$(() => {
-
-    $('#datetimepickerStart').datetimepicker({
-        defaultDate: moment()/*,{ hour: 08, minute: 30, seconds: 00 })*/,
-        format: 'HH:mm:ss'
-    })
-    $('#datetimepickerStop').datetimepicker({
-        defaultDate: moment()/*,//{ hour: 22, minute: 30, seconds: 30 })*/,
-        format: 'HH:mm:ss'
-    })
+let options = {
+        rejectUnauthorized: false, 
+        username: mqttlogin.user,        //  TODO : NOT SAFE!!   visible dans la console....   utiliser le header pour ca?  ou mettre en SSL
+        password: mqttlogin.pass
+    }
 
 
-    mqttSubscription()
-    iot.setDevicesListOnSelect("devices_select", 0, updateHiddenSelected)
-    iot.setSelected('<%- selected %>')
+console.log(devicesList)
+console.log('\nattempting mqtt connect mqtt client:')
+const mqClient = mqtt.connect('ws://192.168.0.33:9001', options)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
+console.log(mqClient)
 
-        
-    iot.mqClient.on("message", (topic, payload) => {
-        if(topic == 'esp32/alive/' + iot.selectedDevice) 
-        { 
-            let data = JSON.parse(payload)
-            
-            //updateHand(data.wifi)
-            if (typeof data.wifi != 'undefined') {
-                document.getElementById('ESP_35030rss_id_value_id').innerHTML =  data.wifi
-            }
-        
-            document.getElementById('latestData').innerHTML = JSON.stringify(data, null, '\t') 
-        }
-        
-    })  
-})
+mqClient.on('error', (err) =>{   console.log(err)    })
 
-
-function getStartStopValue() {
-    var tStart = moment($('#datetimepickerStart').datetimepicker('viewDate')).format('YYYY-MM-DD HH:mm:ss')
-    console.log(tStart)
-    document.getElementById("tStart").value = tStart;
-    var tStop = moment($('#datetimepickerStop').datetimepicker('viewDate')).format('YYYY-MM-DD HH:mm:ss')
-    console.log(tStop)
-    document.getElementById("tStop").value = tStop;
-}
-
-
-
-function mqttSubscription() 
-{
-    iot.mqClient.subscribe("esp32/alive/#")
-    iot.mqClient.subscribe("esp32/alarmList")
-    //client.subscribe("esp32/ios/" + selectedEsp)
-  //  iot.mqClient.publish('esp32/command/getAlarms','')  //  TODO: comment choisir le ESP?
-}
-
-function updateSelected() 
-{ 
-    iot.selectedDevice = $("#devices_select>option:selected").text()
-    console.log("Selecting: " + iot.selectedDevice)
-    document.getElementById('device_id').value = iot.selectedDevice
-   
-}
-
-function sendSetIO(item) 
-{
-    const topic = 'esp32/' + iot.selectedDevice + '/io/' + item.state;      // ESP_35030
-    console.log('Setting IO: ' + topic + ' : ' +  item.io )
-    //client.publish(msg, moment().format('YYYY-MM-DD HH:mm:ss'))
-    iot.mqClient.publish(topic, item.io  )
-}
-
-
-
-const people = { "name": "Nat", "age": 39, "star": 1000000 }
-const str = JSON.stringify(people, null, '\t') //  the null, '\t' is to prettyfy the string
-console.log(str)
+const str = JSON.stringify(configs, null, '\t') //  the null, '\t' is to prettyfy the string
 document.getElementById('configText').innerHTML = str
 
 
-
-const alarmList =  <%- JSON.stringify(alarmList) %>
 console.log(alarmList)
 
 // Find a <table> element with id="myTable":
@@ -368,7 +275,98 @@ for (als in alarmList) {
 
 
 
+async function setDevicesListOnSelect( selectedOption = 0, onChangeCallback = null )
+{
+    if(devicesList.length != 0) {
+        for(let index in devicesList) {  // fill up select option array if devicesList is not empty
+            selectDom.options[selectDom.options.length] = new Option(devicesList[index], index)
+        }
+        
+        selectDom.options[selectedOption].selected = "true"  //  set default selection
+        
+        selectedDevice = selectDom.options[selectedOption].text
+        document.getElementById('device_id').value = selectedDevice 
+        
+        if(onChangeCallback) { changeCallback = onChangeCallback;  } 
+    }  
+    else  console.log('no ESP found in DB')   
+}
 
+
+
+
+
+function updateHiddenSelected() {
+    document.getElementById('device_id').value = selectedDevice
+}
+
+$(() => {
+
+    $('#datetimepickerStart').datetimepicker({
+        defaultDate: moment()/*,{ hour: 08, minute: 30, seconds: 00 })*/,
+        format: 'HH:mm:ss'
+    })
+    $('#datetimepickerStop').datetimepicker({
+        defaultDate: moment()/*,//{ hour: 22, minute: 30, seconds: 30 })*/,
+        format: 'HH:mm:ss'
+    })
+
+    mqClient.subscribe("esp32/alive/#")
+    mqClient.subscribe("esp32/alarmList")
+    setDevicesListOnSelect( 0, updateHiddenSelected)
+
+    let s = devicesList.indexOf('<%- selected %>')
+    selectDom.options[s].selected = "true"
+    selectedDevice = selectDom.options[selectDom.selectedIndex].text
+    console.log("Setting selected: " + selectedDevice)
+
+    mqClient.on("message", (topic, payload) => {
+        if(topic == 'esp32/alive/' + selectedDevice) 
+        { 
+            let data = JSON.parse(payload)        
+            document.getElementById('latestData').innerHTML = JSON.stringify(data, null, '\t') 
+        }
+    })  
+})
+
+
+function getStartStopValue() 
+{
+    let tStart = moment($('#datetimepickerStart').datetimepicker('viewDate')).format('YYYY-MM-DD HH:mm:ss')
+    console.log(tStart)
+    document.getElementById("tStart").value = tStart;
+    let tStop = moment($('#datetimepickerStop').datetimepicker('viewDate')).format('YYYY-MM-DD HH:mm:ss')
+    console.log(tStop)
+    document.getElementById("tStop").value = tStop;
+}
+
+function updateSelected()
+{ 
+    selectedDevice = selectDom.options[selectDom.selectedIndex].text
+    console.log("Changing selected: " + selectedDevice)
+
+console.log(document.cookie)
+  
+document.cookie.selectedDevice = selectedDevice
+  
+
+    if(changeCallback) changeCallback()  
+}
+
+function onSelectChange() {
+
+    selectedDevice = selectDom.options[selectDom.selectedIndex].text
+    console.log("Changing selected: " + selectedDevice)
+    window.location.replace(apiUrl + "/device?deviceID="+ selectedDevice);
+}
+
+function sendSetIO(item) 
+{
+    const topic = 'esp32/' + selectedDevice + '/io/' + item.state;      // ESP_35030
+    console.log('Setting IO: ' + topic + ' : ' +  item.io )
+    //client.publish(msg, moment().format('YYYY-MM-DD HH:mm:ss'))
+    mqClient.publish(topic, item.io  )
+}
 
 </script>
 

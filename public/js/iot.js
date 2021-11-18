@@ -19,6 +19,7 @@ class Iot {
         this.mqClient.on('error', (err) =>{   console.log(err)    })
     } 
 
+
     setHtmlSelectList(selectedOption)
     {
         let select = document.getElementById(this.selectDom)
@@ -119,11 +120,7 @@ class Iot {
 
            
 
-        })
-         
-
-       
+        })      
     }
 
- 
 }

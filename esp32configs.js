@@ -2,69 +2,59 @@
 const espConfigs = 
 [
     {
-        id: "DEFAULT",
+        id: "ESP_15605",
+        zone: "atelier",  
         config: [  
-             { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
-            ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
-            ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
-            ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
-            ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
-            // ,{ io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
-            // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
-            // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" }
-            ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
-            ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
-            ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
-            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]      
+             { io: "34",  mode: "IN", lbl: "A2",  isA: "1", name: "" } 
+            ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1", name: ""}
+            ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0", name: "" }
+            ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0", name: ""}
+            ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0", name: "" }
+                // ,{ io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
+                // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
+                // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" } 
+            ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0", name: "" }
+            ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0", name: "" }
+            ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0", name: ""}
+            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0", name: ""} ]
     },
     {
         id: "ESP_38990",
+        zone: "atelier",  
         config: [
-             { io: "2",  mode: "IN", lbl: "A0",  isA: "0", pre: "none" } 
-            ,{ io: "4",  mode: "IN", lbl: "A1",  isA: "0", pre: "none" }
-            ,{ io: "35", mode: "INPULL", lbl: "A2",  isA: "1",  pre: "none" }
-            ,{ io: "34", mode: "INPULL", lbl: "A3",  isA: "1",  pre: "none" }
-            ,{ io: "36", mode: "INPULL", lbl: "A4",  isA: "1",  pre: "none" }
-            ,{ io: "39", mode: "INPULL", lbl: "A5",  isA: "1",  pre: "none" }
+             { io: "2",  mode: "IN", lbl: "A0",  isA: "0", pre: "none", name: "" } 
+            ,{ io: "4",  mode: "IN", lbl: "A1",  isA: "0", pre: "none", name: "" }
+            ,{ io: "35", mode: "INPULL", lbl: "A2",  isA: "1",  pre: "none" , name: ""}
+            ,{ io: "34", mode: "INPULL", lbl: "A3",  isA: "1",  pre: "none", name: "" }
+            ,{ io: "36", mode: "INPULL", lbl: "A4",  isA: "1",  pre: "none", name: "" }
+            ,{ io: "39", mode: "INPULL", lbl: "A5",  isA: "1",  pre: "none", name: "" }
 
-            ,{ io: "26", mode: "IN", lbl: "D2",  isA: "0", pre: "none" }
-            ,{ io: "25", mode: "IN", lbl: "D3",  isA: "0", pre: "none" }
-            ,{ io: "17", mode: "IN", lbl: "D4",  isA: "0", pre: "none" }
-            ,{ io: "16", mode: "IN", lbl: "D5",  isA: "0", pre: "none" }
-            ,{ io: "27", mode: "IN", lbl: "D6",  isA: "0", pre: "none" }
-            ,{ io: "14", mode: "IN", lbl: "D7",  isA: "0", pre: "none" }
-            ,{ io: "12", mode: "IN", lbl: "D8",  isA: "0", pre: "none" }
-            ,{ io: "13", mode: "IN", lbl: "D9",  isA: "0", pre: "none" }
+            ,{ io: "26", mode: "IN", lbl: "D2",  isA: "0", pre: "none", name: "" }
+            ,{ io: "25", mode: "IN", lbl: "D3",  isA: "0", pre: "none" , name: ""}
+            ,{ io: "17", mode: "IN", lbl: "D4",  isA: "0", pre: "none" , name: ""}
+            ,{ io: "16", mode: "IN", lbl: "D5",  isA: "0", pre: "none", name: "" }
+            ,{ io: "27", mode: "IN", lbl: "D6",  isA: "0", pre: "none" , name: ""}
+            ,{ io: "14", mode: "IN", lbl: "D7",  isA: "0", pre: "none", name: "" }
+            ,{ io: "12", mode: "IN", lbl: "D8",  isA: "0", pre: "none", name: "" }
+            ,{ io: "13", mode: "IN", lbl: "D9",  isA: "0", pre: "none", name: "" }
                 //DigitalInput _D10( 5, "D10");  //  GPIO 5 seems unusable
-            ,{ io: "23", mode: "IN", lbl: "D11", isA: "0", pre: "none" }
-            ,{ io: "19", mode: "IN", lbl: "D12", isA: "0", pre: "none" }
-            ,{ io: "18", mode: "IN", lbl: "D13", isA: "0", pre: "none" } ]
-    },
-    {
-        id: "ESP_15605",
-        config: [  
-            { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
-           ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
-           ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
-           ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
-           ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" } 
-           ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
-           ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
-           ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
-           ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]
+            ,{ io: "23", mode: "IN", lbl: "D11", isA: "0", pre: "none" , name: ""}
+            ,{ io: "19", mode: "IN", lbl: "D12", isA: "0", pre: "none", name: "" }
+            ,{ io: "18", mode: "IN", lbl: "D13", isA: "0", pre: "none", name: "" } ]
     },
     {
         id: "ESP_21737",
+        zone: "bureau",  
         config: [  
-            { io: "34",  mode: "IN", lbl: "A2",  isA: "1" } 
-           ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1" }
-           ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0" }
-           ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0" }
-           ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0" }        
-           ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0" }
-           ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0" }
-           ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0" }
-           ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0" } ]
+             { io: "34",  mode: "IN", lbl: "A2",  isA: "1", name: "" } 
+            ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1", name: "" }
+            ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0", name: "" }
+            ,{ io: "4", mode: "OUT", lbl: "A5",  isA: "1", name: "Fan" }
+            ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0", name: "Lamp 1" }     
+            ,{ io: "14", mode: "OUT", lbl: "D4",  isA: "0", name: "Lamp 2" }
+            ,{ io: "15", mode: "OUT", lbl: "D5",  isA: "0", name: "Pump" }
+            ,{ io: "13", mode: "OUT", lbl: "D6",  isA: "0", name: "Heat" }
+            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0", name: "" } ]   
     }
 ]
 

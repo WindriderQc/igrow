@@ -4,230 +4,183 @@
 <head>
    <%- include('partials/head') %> 
 
-   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
-   <link rel="stylesheet"  type="text/javascript" href="css/YBs.css">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
 
-   <script type="text/javascript" src="js/iot.js"></script>
+   <link rel="stylesheet"  type="text/javascript" href="css/YBs.css">
 </head>
 
-
 <body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
-
-<script>
-   const mqttlogin = JSON.parse('<%- mqttinfo %>')
-   const devicesList =  <%- JSON.stringify(devices) %>
-   console.log(devicesList)
-   let latestData = ""
-   let iot = new Iot(mqttlogin, devicesList )
-
-
-
-
-</script>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">    <%- include('partials/nav') %>  </nav>
 
 <div class="content-wrapper">
-    <div class="container-fluid bg-3 text-center">  
-     
-      <div class="row ">
-<!-- 
-         1 db save par minute
-         1 stream par second
+<div class="container-fluid bg-3 text-center">  
 
-         Live: no DB and all stream
-         Hour:  1 db sur 1    et    1 stream sur  1*60 = 60      // chaque  min
-         Day:   1 db sur 5    et    1 stream sur  5*60 = 300      // chaque 5 min
-         Week:  1 db sur 30   et    1 stream sur 30*60 = 1800     // chaque 30min
-         Month: 1 db sur 120   et   1 stream sur 120*60 = 7200   // chaque 2h
-         Year:  1 db sur 1440  et   1 stream sur 1440*60 = 86400 // chaque 24h -->
-         <script>
-            function setRatio(ratio) {
-               document.getElementById('ratio_id').value = ratio
-               console.log("Reloading with ratio: " + ratio)
-               reloadAll()
-            }
-            function setRetro(retroHours) {
-               document.getElementById('retro_id').innerHTML = retroHours
-             // console.log("Reloading with retro: " + retroHours + "  hours")
-               reloadAll()
-            }
-
-            
-
-         </script>
-
-
-
-
-         <div class="col-sm-3">
-
-
-
-            <div class="card">
-               <form class="form-inline">
-                 
-                     <select class="mx-2 form-control" id="devices_select" onchange=iot.updateSelected(reloadAll)></select>
-                     <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="1"> Last hr </label>
-                     <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="24"> 24 hrs </label>
-                     <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="168" checked> Week </label>
-                     <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="744"> Month </label>
-                     <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="8760" > Year </label>
-               </form>
+    
+    <div class="row pl-1 mb-2">
+        <div class="col-sm-12 px-1">
+            <div class='card shadow'>
+                <select class="mx-2 my-2 form-control" id="devices_select" onchange=onSelectChange(this.options[this.selectedIndex].text)  style="width:auto;"></select>
             </div>
-         </div> 
-         <div class="col-sm-3">
-            <div class="card">
-               <form>
-                  <label class="checkbox-inline"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="0" checked> Live </label>
-                  <label class="checkbox-inline"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="1"> 1 min </label>
-                  <label class="checkbox-inline"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="5"> 5 mins </label>
-                  <label class="checkbox-inline"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="30" > 30 mins </label>
-                  <label class="checkbox-inline"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="120"> 2 hrs </label>
-                  <label class="checkbox-inline"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="1440"> 24 hrs </label>
-               </form>
-            </div>
-         </div>
-         <div class="col-sm-2">
-            <label class="input-inline">Ratio:<input id='ratio_id' type="text" value="30" ></label>
-            <label class="text-inline" id='retro_id'>168</label>
-         </div>
-
-
-
-         <div class="col-sm-4">  
-            <div class="card">
-               <form>
-                  <button type='button' onclick=reloadAll()>Reload data</button>
-               </form>
-            </div>
-         </div>
-
-      </div>
-
-
-      <div class="row mt-2">
-         <%- include('partials/graph/timeline', {titleText: "battery", label: "battery",  units: "v", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 6 }) %>
-         <%- include('partials/graph/timeline', {titleText: "co2",      label: "co2",     units: "", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
-         <%- include('partials/graph/timeline', {titleText: "lpg",      label: "lpg",     units: "", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
-         <%- include('partials/graph/timeline', {titleText: "Temperature", label: "tempBM_280", units: "oC", height: "180", smWidth: "3", time_format:  'HH:mm:ss', max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 50 }) %>
-         <%- include('partials/graph/timeline', {titleText: "pressure", label: "pressure", units: "hPa", height: "180", smWidth: "3", time_format:  'HH:mm:ss', max_length: 60, refreshDelay: 1000, ymin: 900, ymax: 100 }) %>
-         <%- include('partials/graph/timeline', {titleText: "airHumid", label: "airHumid", units: "%", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 10, ymax: 70 }) %>
-         <%- include('partials/graph/timeline', {titleText: "lux",     label: "lux",      units: "lux", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
-         <%- include('partials/graph/timeline', {titleText: "visible", label: "visible",  units: "lux", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 1200 }) %>
-       
-      </div>
-
-
-        <div class="row ">
-           
-            <div class="col-sm-12">
-               <div class="card">
-
-                  
-            
-                  <%- include('partials/graph/meteoGraf') %>      
-               </div>
-
-               <div class="row mt-2 ">
-                  <div class="col-sm-4">
-                     <div class="card text-center">
-                        <div class="card-body"> 
-                           <p class="card-text card-title "><small class="text-muted">Temperature</small></p>
-                           <p id='temp_id' class="card-text">10 oC</p>
-                        </div>
-                     </div>
-                  </div>
-                  <div class="col-sm-4">
-                     <div class="card text-center">
-                        <div class="card-body"> 
-                           <p class="card-text card-title "><small class="text-muted">Humidity</small></p>
-                           <h5 id='humid_id' class="card-text">45 %</h5>
-                        </div>
-                     </div>
-                  </div>
-                  <div class="col-sm-4">
-                     <div class="card text-center">
-                        <div class="card-body"> 
-                           <p class="card-text card-title "><small class="text-muted">Pressure</small></p>
-                           <h5 id='pressure_id' class="card-text">1020 hPa</h5>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-
-            </div>
-
-         </div>
-
-         <div class="row">
-            <div class="col-sm-4">  
-               <div class="card">  
-                  <%- include('partials/graph/circleRaceGraf') %>
-               </div>
-            </div>
-
         </div>
-      
-       
+    </div>
+
+    <div class="row pl-1 mb-2">
+        <%- include('partials/graph/timeline', {titleText: "battery", label: "battery",  units: "v", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 6 }) %>
+        <%- include('partials/graph/timeline', {titleText: "co2",      label: "co2",     units: "", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
+        <%- include('partials/graph/timeline', {titleText: "lpg",      label: "lpg",     units: "", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
+        <%- include('partials/graph/timeline', {titleText: "Temperature", label: "tempBM_280", units: "oC", height: "180", smWidth: "3", time_format:  'HH:mm:ss', max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 50 }) %>
+        <%- include('partials/graph/timeline', {titleText: "pressure", label: "pressure", units: "hPa", height: "180", smWidth: "3", time_format:  'HH:mm:ss', max_length: 60, refreshDelay: 1000, ymin: 900, ymax: 100 }) %>
+        <%- include('partials/graph/timeline', {titleText: "airHumid", label: "airHumid", units: "%", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 10, ymax: 70 }) %>
+        <%- include('partials/graph/timeline', {titleText: "lux",     label: "lux",      units: "lux", height: "180", smWidth: "3", time_format:  'HH:mm:ss',  max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 100 }) %>
+        <%- include('partials/graph/timeline', {titleText: "visible", label: "visible",  units: "lux", height: "180", smWidth: "3", time_format:  'HH:mm:ss',   max_length: 60, refreshDelay: 1000, ymin: 0, ymax: 1200 }) %> 
+    </div>
+
+    <div class="row pl-1 mb-2 mt-2 ">
+
+        <div class="col-sm-4 px-1">
+            <div class="card shadow text-center">
+            <div class="card-body"> 
+                <p class="card-text card-title "><small class="text-muted">Temperature</small></p>
+                <p id='temp_id' class="card-text">10 oC</p>
+            </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 px-1">
+            <div class="card shadow text-center">
+            <div class="card-body"> 
+                <p class="card-text card-title "><small class="text-muted">Humidity</small></p>
+                <h5 id='humid_id' class="card-text">45 %</h5>
+            </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 px-1">
+            <div class="card shadow text-center">
+            <div class="card-body"> 
+                <p class="card-text card-title "><small class="text-muted">Pressure</small></p>
+                <h5 id='pressure_id' class="card-text">1020 hPa</h5>
+            </div>
+            </div>
+        </div>
+
+    </div>
 
 
-         <div class="row my-2">
-            <div class="col-sm-8">
-               <div class="card ">
-                    <canvas id="gazChart"  height="256" ></canvas>
-               </div>
-            </div>
-            <div class="col-sm-4">  
-               <div class="card">
-               
-               </div>
-            </div>
-         </div>
+    <div class="row pl-1 mb-2">
 
-         <div class="row" >
-            <div class="col-sm-8">
-               <div class="card">
-                     <canvas id="luxChart"  height="256" ></canvas>
-               </div>
-            </div>
-            <div class="col-sm-4">  
-               <div class="card">
-          
-                  
+        <div class="col-sm-6 px-1">
+           <div class="card shadow">
+              <form class="form-inline">
+                   <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="1"> Last hr </label>
+                   <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="24"> 24 hrs </label>
+                   <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="168" checked> Week </label>
+                   <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="744"> Month </label>
+                   <label class="form-control border-0"><input type="radio" name="period" onchange="setRetro(this.value)" value="8760" > Year </label>
+              </form>
+           </div>
+        </div> 
 
-               </div>    
-            </div>
+       <div class="col-sm-6 px-1">
+           <div class="card shadow">
+               <form class="form-inline">
+                   <label class="form-control border-0"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="0" checked> Live </label>
+                   <label class="form-control border-0"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="1"> 1 min </label>
+                   <label class="form-control border-0"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="5"> 5 mins </label>
+                   <label class="form-control border-0"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="30" > 30 mins </label>
+                   <label class="form-control border-0"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="120"> 2 hrs </label>
+                   <label class="form-control border-0"><input type="radio" name="ratio" onchange="setRatio(this.value)" value="1440"> 24 hrs </label>
+               </form>
+           </div>
        </div>
 
-       <p id='latestData'>{"sender":"ESP_35030","time":"2020-03-07 23:37:39","battery":3.167902,"CPUtemp":47.77778,"heap":232992,"CPUFreq":240
-         ,"wifi":-67,"co2":608,"smoke":185,"lpg":39,"tempBM_280":23.96,"pressure":1022.898,"altitude":-80.01936,"airHumid":23
-         ,"tempDht":23,"ir":10,"full":38,"visible":28,"lux":1.122358,"soil1":50}</p>
+   </div>
 
 
-         <canvas id="chartBox"></canvas>
+    <div class="row pl-1 mb-2">
+        <div class="col-sm-12 px-1">
+            <div class="card shadow">
+                <%- include('partials/graph/meteoGraf', { height: 400 }) %>      
+            </div>
+        </div>
+    </div>
 
-<script type="text/javascript" src="js/gazChart.js"></script>
-<script type="text/javascript" src="js/luxChart.js"></script>
+    <div class="row pl-1 mb-2">
+        <div class="col-sm-6 px-1 ">
+            <div class="card shadow">
+                <form class='form-inline my-2'>
+                    <label class="input mx-2">Ratio: <input class="mx-1" id='ratio_id' type="text" value="30" style="width:auto;"></label>
+                    <label class="text mx-2" id='retro_id'>168</label>
+            </div>
+                </form>
+                
+        </div>
+    </div>
+
+    <div class="row pl-1 mb-2">
+        <div class="col-sm-12 px-1">
+            <div class="card shadow">
+                <div id='gazDiv'>
+                    <canvas id="gazChart"></canvas>   
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pl-1 mb-2">
+        <div class="col-sm-12 px-1">
+            <div class="card shadow">
+                <div id='luxDiv'>
+                    <canvas id="luxChart"></canvas>   
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row pl-1 mb-2">
+        <div class="col-sm-4 px-1">  
+            <div class="card shadow">  
+                <%- include('partials/graph/circleRaceGraf') %>
+            </div>
+        </div>
+    </div>
+      
+    
+    <p id='latestData'>{"sender":"ESP_35030","time":"2020-03-07 23:37:39","battery":3.167902,"CPUtemp":47.77778,"heap":232992,"CPUFreq":240
+        ,"wifi":-67,"co2":608,"smoke":185,"lpg":39,"tempBM_280":23.96,"pressure":1022.898,"altitude":-80.01936,"airHumid":23
+        ,"tempDht":23,"ir":10,"full":38,"visible":28,"lux":1.122358,"soil1":50}</p>
 
 
+        
+    <script src="/js/luxGraf.js"></script>
+    <script src="/js/gazGraf.js"></script>
 
 <script>
 
+const mqttlogin = JSON.parse('<%- mqttinfo %>')
+const devicesList =  <%- JSON.stringify(devices) %>;
+const apiUrl = <%- JSON.stringify(apiUrl) %>;
+const mqttUrl = <%- JSON.stringify(mqttUrl) %>;
+console.log(mqttUrl, devicesList)
 
-iot.mqClient.subscribe("esp32/#")
-iot.setDevicesListOnSelect('devices_select', 0, reloadAll)
-iot.setSelected('<%- selected %>')
-
-
-
-let dataCount = 0; 
-
-let validRange = (value) => {
-   let ret; 
-   if( value  < 2500)  ret = 2500;     else ret = value
-   return ret
+let latestData = ""   // TODO:  hmmmmm     peut pas marcher pour plusieurs client....   wtf...
+let dataCount = 0
+let selectedDevice = ""
+let selectDom = document.getElementById('devices_select')
+let mqttOptions = {
+    rejectUnauthorized: false, 
+    username: mqttlogin.user,        //  TODO : NOT SAFE!!   visible dans la console....   utiliser le header pour ca?  ou mettre en SSL
+    password: mqttlogin.pass
 }
+
+console.log('\nattempting mqtt connect mqtt client:')
+const mqClient = mqtt.connect(mqttUrl, mqttOptions)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
+
+mqClient.on('error', (err) =>{   console.log(err)    })
+
+
+function validRange(value) {   return (value < 2500) ? 2500 : value  }
 
 
 function updateCards(data)
@@ -239,48 +192,42 @@ function updateCards(data)
 }
 
 
-
-iot.mqClient.on('message', (topic, payload) => {
-       // alert([topic, payload].join(": "))
-
-   if(topic == 'esp32/alive/' + iot.selectedDevice) 
-   {     
-         let data = JSON.parse(payload)
-         latestData = data
-         
-        // console.log(latestData.sender)
-
-         updateCards(latestData)
-
-       //  setRaceGrafValue('Soil Moisture W', data.soil1)
-         dataCount++;
-         if(dataCount >= document.getElementById('ratio_id').value)// * 60)// *60  => ESPs stream 1 per sec, DB records 1 per 60s
-         {
-            dataCount = 0;
-           // newTempData(latestData)
-            newGazData(latestData)
-            newLuxData(latestData) 
-         }   
-   }
-
-   if(topic == 'esp32/ios')   // TODO: n'est pas utilisé...  revoir la structure d'échange topic/msg
-   {
-      let data = JSON.parse(payload)
-
-      if(data.sender == "ESP_38990")
-      {
-         console.log(data)
+async function setDevicesListOnSelect( selectedOption = 0 )
+{
+    if(devicesList.length != 0) {
+        for(let index in devicesList) {  // fill up select option array if devicesList is not empty
+            selectDom.options[selectDom.options.length] = new Option(devicesList[index], index)
+        }
+        
+        selectDom.options[selectedOption].selected = "true"  //  set default selection
+        selectedDevice = selectDom.options[selectedOption].text
+              
+    }  
+    else  console.log('no ESP found in DB')   
+}
 
 
-         setRaceGrafValue('Soil Moisture 1', Tools.scale(validRange(data.A2), 4095, 2500, 0, 100))
-         setRaceGrafValue('Soil Moisture 2', Tools.scale(validRange(data.A3), 4095, 2500, 0, 100))
-         setRaceGrafValue('Soil Moisture 3', Tools.scale(validRange(data.A4), 4095, 2500, 0, 100))
-         setRaceGrafValue('Soil Moisture 4', Tools.scale(validRange(data.A5), 4095, 2500, 0, 100))
-      } 
-   }
+/*       
+        1 db save par minute
+        1 stream par second
 
-})
-
+        Live: no DB and all stream
+        Hour:  1 db sur 1    et    1 stream sur  1*60 = 60      // chaque  min
+        Day:   1 db sur 5    et    1 stream sur  5*60 = 300      // chaque 5 min
+        Week:  1 db sur 30   et    1 stream sur 30*60 = 1800     // chaque 30min
+        Month: 1 db sur 120   et   1 stream sur 120*60 = 7200   // chaque 2h
+        Year:  1 db sur 1440  et   1 stream sur 1440*60 = 86400 // chaque 24h 
+*/
+function setRatio(ratio) {
+    document.getElementById('ratio_id').value = ratio
+    console.log("Reloading with ratio: " + ratio)
+    reloadAll()
+}
+function setRetro(retroHours) {
+    document.getElementById('retro_id').innerHTML = retroHours
+    // console.log("Reloading with retro: " + retroHours + "  hours")
+    reloadAll()
+}
 
 async function getData(selectedDevice) 
 {
@@ -295,37 +242,85 @@ async function getData(selectedDevice)
 
    const response = await fetch('/data/' + ratio + ',' + selectedDevice + ',' + dateFrom ) 
    const data = await response.json()
-   console.log(data)
+   //console.log(data)
    return data
+}
+
+
+function onSelectChange(selection) 
+{
+    selectedDevice = selection
+    console.log("Changing selected: " + selectedDevice)
+    window.location.replace(apiUrl + "/graphs?deviceID="+ selectedDevice);
 }
 
 
 async function reloadAll() 
 {
-   latestData.sender = ""  //  used to detect changes in timelineGraph   //  TODO:  pas fameux
-
-   const espData = await getData(iot.selectedDevice)
- 
-   createtempChart(espData) 
-
-  // createTimeChart(espData)
-
-   resetGazChart(espData)
-
-   resetLuxChart(espData)
+    console.log('Getting data for : ', selectedDevice )
+    
+    latestData.sender = ""  //  used to detect changes in timelineGraph   //  TODO:  pas fameux
+     
+    const espData = await getData(selectedDevice)
+    
+    createMeteoChart(espData, 400)  // createTimeChart(espData)
+    createGazChart(espData, 256)
+    createLuxChart(espData, 256)
 }
 
 
 
+$(() => {
+    mqClient.subscribe("esp32/#")
 
+    let s = devicesList.indexOf('<%- selected %>')  //  récupère l'index de la sélection de la session
+    setDevicesListOnSelect(s) //  affiche la  sélection de la session sur le Select  et sauvegarde la sélection
+   
+    mqClient.on('message', (topic, payload) => {
+       // alert([topic, payload].join(": "))
+        if(topic == 'esp32/alive/' + selectedDevice) 
+        {     
+                let data = JSON.parse(payload)
+                latestData = data
 
+                updateCards(latestData)
 
+            //  setRaceGrafValue('Soil Moisture W', data.soil1)
+                dataCount++;
+                if(dataCount >= document.getElementById('ratio_id').value)// * 60)// *60  => ESPs stream 1 per sec, DB records 1 per 60s
+                {
+                    dataCount = 0;
+                // newTempData(latestData)
+                    newGazData(latestData)
+                    newLuxData(latestData) 
+                }   
+        }
+
+        if(topic == 'esp32/ios')   // TODO: n'est pas utilisé...  revoir la structure d'échange topic/msg
+        {
+            let data = JSON.parse(payload)
+
+            if(data.sender == "ESP_38990")
+            {
+                console.log(data)
+                setRaceGrafValue('Soil Moisture 1', Tools.scale(validRange(data.A2), 4095, 2500, 0, 100))
+                setRaceGrafValue('Soil Moisture 2', Tools.scale(validRange(data.A3), 4095, 2500, 0, 100))
+                setRaceGrafValue('Soil Moisture 3', Tools.scale(validRange(data.A4), 4095, 2500, 0, 100))
+                setRaceGrafValue('Soil Moisture 4', Tools.scale(validRange(data.A5), 4095, 2500, 0, 100))
+            } 
+        }
+
+    })
+
+    reloadAll()
+})
 
 </script>
 
 
+
  <!-- End Container  -->
-   </div>
+</div>
 </div>
 
 <%- include('partials/footer') %>

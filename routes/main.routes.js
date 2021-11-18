@@ -5,6 +5,7 @@ const moment = require('moment')
 
 const alarmController = require('../controllers/alarmController')
 const userController = require('../controllers/userController')
+const espConfigs = require('../esp32configs')
 const getMqtt = require('../serverMqtt').getMqttClient
 const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
@@ -13,6 +14,7 @@ Tools.readFile("greetings.txt")
 const mdb = require('../mongoCollections')
 
 const apiUrl = process.env.API_URL
+const mqttUrl = process.env.MQTT_URL
 
 
 
@@ -20,12 +22,7 @@ const apiUrl = process.env.API_URL
 //let devices = [] //['ESP_35030', 'ESP_15060']
 
 
-const ioList = [{'name': 'Lamp_1', 'io': 13},
-                {'name': 'Lamp_2', 'io': 21},
-                {'name': 'Fan_1',  'io': 5},
-                {'name': 'Heat_1', 'io': 4},
-                {'name': 'Pump_1', 'io': 18},
-                {'name': 'Pump_2', 'io': 19}]
+
              
 const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
@@ -57,29 +54,32 @@ router.get('/cams',  (req, res) => {  res.render('cams')  })
 
 const HeartbeatDB = require('../models/heartbeatModel')
 
+let selectedDevice  //  TODO : doit etre dans la session épais...    sinon plus d'un client se battrait! 
+
 router.get('/device',  async (req, res) => {
    
     const list = await HeartbeatDB.distinct("sender")
-
-    let selected;
-    if(req.session.selectedDevice)  selected = req.session.selectedDevice
-    else selected = list[0] 
-
+    selectedDevice = req.query.deviceID ? req.query.deviceID : list[0] 
+    console.log(selectedDevice)
+  
     const alarmList = await alarmController.getAll() //console.log(alarmList)
 
-    res.render('device', { ioList: ioList, mqttinfo: mqttinfo , devices: list, selected: selected, alarmList: alarmList})
+    res.render('device', { mqttinfo: mqttinfo, devices: list, selected: selectedDevice, alarmList: alarmList, configs: espConfigs, apiUrl: apiUrl })
 })
 
 router.get('/graphs',  async (req, res) => { 
     
     const list = await HeartbeatDB.distinct("sender")
 
-    let selected
-    if(req.session.selectedDevice)  selected = req.session.selectedDevice
-    else selected = list[0] 
+    selectedDevice = req.query.deviceID ? req.query.deviceID : list[0] 
+    console.log(selectedDevice)
 
-    res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: selected })
+    res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: selectedDevice, apiUrl: apiUrl, mqttUrl: mqttUrl })
 })
+
+
+
+
 
 
 const User = require('../models/userModel');
@@ -101,8 +101,6 @@ router.get('/iot',  async (req, res) => {
 
     res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
 })
-
-
 
 router.get('/database',  (req, res) => {
     const list = mdb.getCollections()

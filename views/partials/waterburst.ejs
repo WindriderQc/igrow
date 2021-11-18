@@ -1,0 +1,55 @@
+<div class="card shadow">
+    <a href="#collapseWater" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseWater">
+        <p class="m-0 font-weight-bold text-secondary">Watering</p>
+    </a>
+
+    <div class="collapse show" id="collapseWater">
+        <div class="card-body">
+
+        <form  >
+            <input type="button" class="btn btn-primary" onclick="waterburst()" value="Water Burst">
+        </form>
+
+        <p>Relay Actions:</p>
+        <form action="http://192.168.0.212/RELAY" method="post"> 
+            <input type="submit" class="btn btn-primary" value="Toggle Relay">
+            <input type="hidden" name="state" value="TOGGLE">
+        </form>
+        <form action="http://192.168.0.212/RELAY" method="post"> 
+            <input type="submit" class="btn btn-primary" value="ON">
+            <input type="hidden" name="state" value="ON">
+        </form>
+        <form action="http://192.168.0.212/RELAY" method="post"> 
+            <input type="submit" class="btn btn-primary" value="OFF">
+            <input type="hidden" name="state" value="OFF">
+        </form>                            
+
+        </div>
+    </div>
+</div>
+
+<script>
+    /*
+There are a few 'gotchas' in the ESP8266WebServer's implementation. I have found the body shows up in the
+server.arg("plain")
+but only if the class cannot find any key value pairs. The ESP8266WebServer will look for an '=' and only if it cannot find one will it put the body in the "plain" arg.
+This arg will contain the full body so you will have to parse the JSON yourself. I have found ArduinoJson to be a very easy to use library to do so.
+Short example:
+void handleRequest() {  
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(server.arg("plain"));
+  root.printTo(Serial);
+}
+On a sidenote. If you are testing with a POSTMAN like tool, do not forget to set the 'Content-length'. ESP8266WebServer will treat your body as empty (or of a different length) if it does not correspond with this header value.
+Hope this answers your question.*/
+async function waterburst()
+{
+    console.log ('waterburst post received, sending relay request:')
+    try {
+        Tools.postData("http://192.168.0.212/RELAY", 'state=ON')
+        setTimeout(() => Tools.postData("http://192.168.0.212/RELAY", 'state=OFF'), 3000)        
+    }
+    catch (err) {  console.error(err)  }
+}
+
+</script>
