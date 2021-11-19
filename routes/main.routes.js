@@ -15,18 +15,7 @@ const mdb = require('../mongoCollections')
 
 const apiUrl = process.env.API_URL
 const mqttUrl = process.env.MQTT_URL
-
-
-
-/// DATA 
-//let devices = [] //['ESP_35030', 'ESP_15060']
-
-
-
-             
 const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
-
-
 
 
 ////   free routes
@@ -54,12 +43,12 @@ router.get('/cams',  (req, res) => {  res.render('cams')  })
 
 const HeartbeatDB = require('../models/heartbeatModel')
 
-let selectedDevice  //  TODO : doit etre dans la session épais...    sinon plus d'un client se battrait! 
 
 router.get('/device',  async (req, res) => {
    
     const list = await HeartbeatDB.distinct("sender")
-    selectedDevice = req.query.deviceID ? req.query.deviceID : list[0] 
+    let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0]  //  default on 1st device if none is saved in session
+    selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
     console.log(selectedDevice)
   
     const alarmList = await alarmController.getAll() //console.log(alarmList)
@@ -67,23 +56,52 @@ router.get('/device',  async (req, res) => {
     res.render('device', { mqttinfo: mqttinfo, devices: list, selected: selectedDevice, alarmList: alarmList, configs: espConfigs, apiUrl: apiUrl })
 })
 
+
 router.get('/graphs',  async (req, res) => { 
-    
+
     const list = await HeartbeatDB.distinct("sender")
-
-    selectedDevice = req.query.deviceID ? req.query.deviceID : list[0] 
-    console.log(selectedDevice)
-
+    let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0]  // req.query.deviceID ? req.query.deviceID : list[0]  
+    console.log('loading graf: ', selectedDevice )
+    
     res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: selectedDevice, apiUrl: apiUrl, mqttUrl: mqttUrl })
 })
 
 
+router.post('/selectDevice', async (req, res) => {
 
+    req.session.selectedDevice = req.body.selected
+    console.log('Receiving selection: ' , req.body.selected)
+    req.session.save(async (err) => { 
+        if(err) console.log('Session error: ', err)
+       // console.log(req.session)
+        res.redirect('/graphs')
+    })
+
+})
+
+/*router.post('/graphs',  async (req, res) => { 
+   
+    req.session.selectedDevice = req.body.selection
+    req.session.save(async (err) => { 
+        if(err) console.log('Session error: ', err)
+        console.log(req.session)
+        res.redirect('/graphs')
+       // const list = await HeartbeatDB.distinct("sender")
+      //  res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: req.body.selection, apiUrl: apiUrl, mqttUrl: mqttUrl })
+    }) */
+
+/*req.session.selectedDevice = req.body.selection
+    return new Promise((resolve, reject) => {
+        req.session.save((err) => {      
+          if (err)  reject(err) 
+          console.log('Yooo', req.session)
+          resolve(res.redirect(apiUrl + '/graphs'))
+        })
+      })*/
 
 
 
 const User = require('../models/userModel');
-
 router.get('/settings',  (req, res) => {
 
     User.get((err, users)=> { 
@@ -92,6 +110,7 @@ router.get('/settings',  (req, res) => {
     })
     
 })
+
 
 router.get('/iot',  async (req, res) => {
   

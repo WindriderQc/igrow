@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express'),
 session = require('express-session'),
+MongoDBStore = require('connect-mongodb-session')(session),
 serveIndex = require('serve-index'),
 path = require('path'),
 cors = require('cors')
@@ -11,14 +12,30 @@ const IN_PROD = process.env.NODE_ENV === 'production'  // for https channel...  
 
 const PORT = process.env.PORT || 5000
 
+
+
+const mongoStore = new MongoDBStore({  
+    uri: process.env.MONGO_URL,  
+    collection: 'mySessions', 
+    connectionOptions: {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        // serverSelectionTimeoutMS: 10000
+    }
+}, (err) => { if(err) console.log( 'MongoStore connect error: ', err) } );
+
+mongoStore.on('error', (error) => console.log('MongoStore Error: ', error) );
+
+
 const sessionOptions = {
                           name: process.env.SESS_NAME,
                           resave: false,
                           saveUninitialized: false,
                           secret: process.env.SESS_SECRET,
+                          store: mongoStore,
                           cookie: {
                               secure: IN_PROD,
-                              maxAge: Number(process.env.SESS_LIFETIME),
+                            //maxAge: Number(process.env.SESS_LIFETIME),    //  TODO: désactivé pour BUG:  apres un logout (destroy session), plus capable de ravoir un cookie envoyé apres le login....       update: semble etre un probleme de persistence apres un redirect
                               sameSite: true
                           }
                         }
@@ -26,7 +43,6 @@ const sessionOptions = {
 
 const app = express()
 app.set('view engine', 'ejs')
-
 
 
 
@@ -84,7 +100,7 @@ message: error.message
 
 //Middlewares & routes
 app
-    .use(cors())    //.use(cors({    origin: '*',    optionsSuccessStatus: 200  }  ))
+    .use(cors({    origin: '*',    optionsSuccessStatus: 200  }  ))
     .use(express.urlencoded({extended: true, limit: '10mb'}))  //  Must be before  'app.use(express.json)'    , 10Mb to allow image to be sent
     .use(express.json({limit:'10mb'})) // To parse the incoming requests with JSON payloads
     //.use(rateLimit({ windowMs: 30 * 1000, max: 1 }))  //  prevents a user to crash server with too many request, altough with ESP32 sending heartbeat fast.. this cannot be set
