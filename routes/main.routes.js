@@ -11,7 +11,7 @@ const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
 
 
-const mdb = require('../mongoCollections')
+const mdb = require('../mongooseDB')
 
 const apiUrl = process.env.API_URL
 const mqttUrl = process.env.MQTT_URL
@@ -123,7 +123,7 @@ router.get('/iot',  async (req, res) => {
 
 router.get('/database',  (req, res) => {
     const list = mdb.getCollections()
-    console.log('Sending collection list to client: ', list)
+    console.log('Sending collection list to client: ', JSON.parse(list))
     res.render('database', {collectionList: list })
 })
 

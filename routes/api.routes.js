@@ -118,7 +118,7 @@ router.route('/alarms/setAlarm').post(async (req, res) => { // TODO:  devrait et
             console.log(message)
             //return res.status(400).send(message);
         }
-        else {
+        else {  //  send new alarm to already connected ESP.  Non connected ESP will receive the alarm at next boot.
             let mq = getMqtt()
             let topic = 'esp32/' + als.espID + '/io' 
             let startTime = moment(als.tStart).local().format('HH:mm:ss')

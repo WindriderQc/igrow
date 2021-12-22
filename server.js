@@ -55,13 +55,15 @@ app.set('view engine', 'ejs')
 // Connect to DBs
 
 // mongoose with local DB
-require('./mongoCollections')
+require('./mongooseDB')
 
 
 //Mongodb Client setup  with CloudDB
-const mongo = require('./mongo')
+const mongo = require('./mongoClientDB')
 
-mongo.connectDb('test', async (mongodb) =>{    // dbServ, test, admin, local 
+const dbase = 'test' // dbServ, test, admin, local 
+
+mongo.connectDb(dbase, async (mongodb) =>{   
     app.locals.collections = [] 
     const list = await mongo.getCollectionsList()
 

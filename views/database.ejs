@@ -77,6 +77,8 @@
 let dbList = JSON.parse('<%- collectionList %>')
 let colList = []
 
+console.log(dbList)
+
 dbList.forEach((db) => {
     colList.push(db.name)
 })

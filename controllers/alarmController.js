@@ -25,7 +25,7 @@ exports.post = async (req, res) => {
                                             tStart:  req.body.tStart,
                                             tStop: req.body.tStop
                                         },
-                                        { upsert: true }      // Will create a new document if alarmIO was not existing
+                                        { upsert: true }      // Will create a new document if alarmIO doesnt exist
                                     )
    
        

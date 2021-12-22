@@ -26,6 +26,7 @@ const esp32 = {
     {
             const rawResponse = await fetch(apiUrl + '/api/alarms/' + espID);   
             const alarms = await rawResponse.json()
+            console.log(alarms)
             for( als of alarms) {
                 mqttclient.publish('esp32/' + espID + '/io/sunrise', "" + als.io + ":" + moment(als.tStart).format('HH:mm:ss'))
                 mqttclient.publish('esp32/' + espID + '/io/nightfall',"" + als.io + ":" + moment(als.tStop).format('HH:mm:ss'))

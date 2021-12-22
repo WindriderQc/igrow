@@ -66,14 +66,14 @@ function initMqtt()
 
 function printmsg(topic, message) 
 {
-    let msg
-    try {         msg = JSON.parse(message)    }
-    catch (err) { 
-        console.log('Could not parse JSON. Converting to string...')  
-        msg = message.toString()
-    }
     console.log(topic)
-    console.log(msg)
+
+    let msg
+    try {  msg = JSON.parse(message)  }    //  if not a json....   
+    catch (e) {                            //  then convert buffer to string
+        msg = message.toString()          
+        console.log('Msg is not a JSON. toString: ' + msg)                  
+    }  
 }
 
 

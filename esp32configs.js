@@ -13,6 +13,7 @@ const espConfigs =
                 // ,{ io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
                 // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
                 // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" } 
+            ,{ io: "13", mode: "OUT", lbl: "A12",  isA: "0", name: "BUILTINLED" }
             ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0", name: "" }
             ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0", name: "" }
             ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0", name: ""}
@@ -54,7 +55,8 @@ const espConfigs =
             ,{ io: "14", mode: "OUT", lbl: "D4",  isA: "0", name: "Lamp 2" }
             ,{ io: "15", mode: "OUT", lbl: "D5",  isA: "0", name: "Pump" }
             ,{ io: "13", mode: "OUT", lbl: "D6",  isA: "0", name: "Heat" }
-            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0", name: "" } ]   
+            ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0", name: "" } 
+            ,{ io: "13", mode: "OUT", lbl: "A12",  isA: "0", name: "BUILTINLED" }  ] 
     }
 ]
 

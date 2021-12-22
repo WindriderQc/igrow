@@ -9,15 +9,17 @@ const mongo = {
     {
         mongoClient.connect(process.env.MONGO_URL,  { useNewUrlParser: true, useUnifiedTopology: true })
         .then(client =>{
-            console.log('MongoDB client connected to db: ' + process.env.MONGO_URL)  
+            
            
             client.db().admin().listDatabases().then(dbs => {
-                console.log( dbs)
+                console.log('\nMongoDB client connected to db: ' + process.env.MONGO_URL + '\nDatabases:')  
+                console.log(dbs.databases)
+                console.log()
             })
 
             this.db = client.db(dbName);
 
-            callback(this.db )
+            callback(this.db)
         })
     },
     
@@ -38,10 +40,5 @@ const mongo = {
     }
     
 }
-
-
-
-
-
   
 module.exports = mongo
