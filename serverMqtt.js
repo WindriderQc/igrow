@@ -4,7 +4,9 @@ const mqtt = require('mqtt'),
  assert = require('assert'),
  //fetch = require('node-fetch'),
  esp32 = require('./esp32'),
- apiUrl = process.env.API_URL
+ mqttServerIp = process.env.MQTT_SERVER_IP,
+ mqttUser = process.env.MQTT_USER,
+ mqttPass = process.env.MQTT_PASS
 
 
 let mqtt_
@@ -12,8 +14,8 @@ let mqtt_
 const mqttOptions = {
     port: 1883,
     rejectUnauthorized: false,
-    username: process.env.MQTT_USER,
-    password: process.env.MQTT_PASS
+    username: mqttUser,
+    password: mqttPass
   }
 
 
@@ -23,7 +25,7 @@ function initMqtt()
 
     console.log('Attempting connection...')
 
-    let mqttclient = mqtt.connect("mqtt://" + process.env.MQTT_SERVER_IP, mqttOptions)
+    let mqttclient = mqtt.connect("mqtt://" + mqttServerIp, mqttOptions)
    
     mqttclient.on('error', (err) => {  console.log(err)  })
 
@@ -52,7 +54,8 @@ function initMqtt()
         else if (topic.indexOf('esp32/alive/') >= 0) 
         { 
             let heartbeat = JSON.parse(message)//  console.log("Message: ", heartbeat)
-            esp32.saveEspPost(heartbeat, apiUrl + '/api/heartbeats')
+            //esp32.saveEspPost(heartbeat)
+            esp32.receiveMessage(heartbeat)
         }
         else { printmsg(topic, message) }  // prints all other messages to console   
     })
