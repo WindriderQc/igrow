@@ -7,7 +7,7 @@ const mongoClient = require("mongodb").MongoClient
 const mongo = {
     connectDb: (dbName, callback) => 
     {
-        mongoClient.connect(process.env.MONGO_URL,  { useNewUrlParser: true, useUnifiedTopology: true })
+        mongoClient.connect( process.env.MONGO_URL,  { useNewUrlParser: true, useUnifiedTopology: true } )  //  TODO  passer l'URL en param pour enlever dépendance a dotenv
         .then(client =>{
             
            
@@ -30,13 +30,13 @@ const mongo = {
            // console.log(collInfos)
             return collInfos
         } 
-        catch(e) { console.log(e)}
+        catch(e) { console.log(e) }
        
     },
     
     getDb: (collectionToGet) => 
     {
-            return this.db.collection(collectionToGet)
+        return this.db.collection(collectionToGet)
     }
     
 }
