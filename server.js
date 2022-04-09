@@ -61,7 +61,7 @@ require('./mongooseDB')
 //Mongodb Client setup  with CloudDB
 const mongo = require('./mongoClientDB')
 
-const dbase = 'test' // dbServ, test, admin, local 
+const dbase = 'iGrow' // dbServ, test, admin, local 
 
 mongo.connectDb(dbase, async (mongodb) =>{   
     app.locals.collections = [] 
