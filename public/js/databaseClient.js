@@ -4,7 +4,7 @@ const errorElement = document.querySelector('.error-message');
 const loadingElement = document.querySelector('.loading');
 const bootsElement = document.querySelector('.boots');
 const loadMoreElement = document.querySelector('#loadMore');
-const API_URL =  'http://localhost:3001/database';     // TODO: recevoir du server ejs
+const API_URL =  'http://localhost:3001/database';   //IGROW_IP   // TODO: recevoir du server ejs
 
 let skip = 0;
 let limit = 30;    //   TODO:  si le limit est plus petit que window et y apas de scroll....   le scroll event launch pas

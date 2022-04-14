@@ -6,6 +6,7 @@ const moment = require('moment')
 const alarmController = require('../controllers/alarmController')
 const userController = require('../controllers/userController')
 const espConfigs = require('../esp32configs')
+const {esp32} = require('../esp32')
 const getMqtt = require('../serverMqtt').getMqttClient
 const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
@@ -13,7 +14,7 @@ Tools.readFile("greetings.txt")
 
 const mdb = require('../mongooseDB')
 
-const apiUrl = process.env.API_URL
+const apiUrl = process.env.IGROW_IP
 const mqttUrl = process.env.MQTT_URL
 const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
@@ -53,7 +54,10 @@ router.get('/device',  async (req, res) => {
   
     const alarmList = await alarmController.getAll() //console.log(alarmList)
 
-    res.render('device', { mqttinfo: mqttinfo, devices: list, selected: selectedDevice, alarmList: alarmList, configs: espConfigs, apiUrl: apiUrl })
+    const registered = await esp32.getRegistered()
+    const devices = { list, registered, espConfigs }
+
+    res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, alarmList: alarmList, apiUrl: apiUrl })
 })
 
 
@@ -198,7 +202,7 @@ router.get('/deviceLatest/:esp',  async (req, res) => {
             data.lastConnect = duration
 
             if(data.wifi != -100) {
-                 if(duration > 0.001)  
+                 if(duration > 0.05)  
                  {
                     console.log('Device disconnected !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
                     data.wifi   = -100

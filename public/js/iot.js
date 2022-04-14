@@ -1,5 +1,5 @@
 class Iot {
-    constructor(mqttlogin, deviceList) 
+    constructor(mqttlogin, deviceList, mqttServerIP) 
     {
         this.selectedDevice = ""
         this.deviceList = deviceList
@@ -13,7 +13,7 @@ class Iot {
         }
 
         console.log('attempting mqtt connect mqtt client:')
-        this.mqClient = mqtt.connect('ws://192.168.0.33:9001', options)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
+        this.mqClient = mqtt.connect(mqttServerIP, options)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
         console.log(this.mqClient)
 
         this.mqClient.on('error', (err) =>{   console.log(err)    })

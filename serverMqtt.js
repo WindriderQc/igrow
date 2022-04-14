@@ -3,7 +3,7 @@ require('dotenv').config()
 const mqtt = require('mqtt'),
  assert = require('assert'),
  //fetch = require('node-fetch'),
- esp32 = require('./esp32'),
+ {esp32} = require('./esp32'),
  mqttServerIp = process.env.MQTT_SERVER_IP,
  mqttUser = process.env.MQTT_USER,
  mqttPass = process.env.MQTT_PASS
@@ -38,8 +38,11 @@ function initMqtt()
     mqttclient.on('message', async (topic, message) => {
         if (topic == 'esp32/boot') //  message is an arrayBuffer and contains ESP_ID
         {
-            printmsg(topic, message) 
-            esp32.setConfig(message.toString(), mqttclient)
+            const espID = message.toString()
+            console.log("Topic: ", topic, "  msg: ", espID )
+            
+            esp32.register({ type: 'esp32', id: espID, configName:"default", lastBoot: Date.now(), connected: true })
+            esp32.setConfig(espID, mqttclient)
             esp32.setAlarms(message, mqttclient)   //  TODO:  valider pkoi ca marche ici direct avec le buffer sans conversion string
         }
         else if (topic == 'esp32/sensors') 
@@ -61,6 +64,8 @@ function initMqtt()
     })
 
 
+    setInterval(esp32.validConnected, 1000)
+
     mqtt_ = mqttclient
     return mqtt_
 }
@@ -69,14 +74,12 @@ function initMqtt()
 
 function printmsg(topic, message) 
 {
-    console.log(topic)
-
-    let msg
-    try {  msg = JSON.parse(message)  }    //  if not a json....   
-    catch (e) {                            //  then convert buffer to string
-        msg = message.toString()          
-        console.log('Msg is not a JSON. toString: ' + msg)                  
-    }  
+    try {  
+        let msg
+        msg = JSON.parse(message)
+        console.log('Topic: ', topic, '  msg: ', msg)
+    }                                                                                            //  if not a json....   
+    catch (e) {  console.log('Topic: ', topic, '  Msg is not a JSON-ConvertingToString: ' + message.toString())  }   //  then convert buffer to string       
 }
 
 

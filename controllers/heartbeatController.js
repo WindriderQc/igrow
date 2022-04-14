@@ -3,65 +3,41 @@ const Heartbeat = require('../models/heartbeatModel')
 
 // Gets back all the posts
 exports.index = (req, res)=> {   
-
-    Heartbeat.find({}, (err, posts) => {
-        if (err)  res.json({ status:'error', message: err})
-        res.json({ status: "success", message: 'Heartbeats retrieved successfully', data: posts  })
-    })
+    Heartbeat.find({}, (err, posts) => {   errorCheck(err, res, { status: "success", message: 'Heartbeats retrieved successfully', data: posts  })    })
 }
 
 
 //Get a  post  '/:post_id'
 exports.byId = (req, res) => {
-    Heartbeat.findById(req.params.post_id, (err, post) =>{
-        console.log()
-        if (err)  res.json({ status:'error', message: err})
-        res.json({ status: "success", message: 'Heartbeat retrieved successfully', data: post  })
-    })   
+    Heartbeat.findById(req.params.post_id, (err, post) =>{ errorCheck(err, res, { status: "success", message: 'Heartbeat retrieved successfully', data: post  })    })   
 }
 
 
 // Submits a post
 exports.new = (req, res) => {
-
     const post = new Heartbeat(req.body)
-
-    post.save((err) =>{
-        if (err)  res.json({ status:'error', message: err})
-        res.json({ status: "success", message: 'Heartbeat loggged successfully', data: post  })
-    })
+    post.save((err) =>{  errorCheck(err, res, { status: "success", message: 'Heartbeat loggged successfully', data: post  })    })
 }
 
 
 //Delete a specific post
 exports.delete = (req, res) => {
-   
-    Heartbeat.deleteOne({ _id: req.params.post_id }, (err, ack) => {
-        if (err)  res.json({ status:'error', message: err})
-        res.json({ status: "success", message: 'Post deleted', data: ack  })
-        })
+    Heartbeat.deleteOne({ _id: req.params.post_id }, (err, ack) => { errorCheck( err, res, { status: "success", message: 'Post deleted', data: ack  })    })
 }
 
 
 // delete all the posts
-exports.deleteAll = (req, res) => { 
-  
-    Heartbeat.deleteMany({}, (err, ack) => {
-        if (err)  res.json({ status:'error', message: err})
-        res.json({ status: "success", message: 'All Heartbeats deleted', data: ack  })
-        })
-
+exports.deleteAll = (req, res) => {  
+    Heartbeat.deleteMany({}, (err, ack) => { errorCheck(err, res, { status: "success", message: 'All Heartbeats deleted', data: ack  })     })
 }
 
 
 // get list of all devices that posted 
 exports.devices = (req, res) => {   
-
-    Heartbeat.distinct('sender', (err, devices) => {
-        if (err)  res.json({ status:'error', message: err})
-        res.json({ status: "success", message: 'Latest heartbeater devices retrieved', data: devices  })
-    })     
+    Heartbeat.distinct('sender', (err, devices) => { errorCheck(err, res, { status: "success", message: 'Latest heartbeater devices retrieved', data: devices  })    })     
 }
+
+
 
 
 // get last post for a specific device
@@ -116,6 +92,13 @@ exports.data = async (req, res) => {
 
 
 
+
+
+// helper method
+errorCheck = (err, res, successMsg) =>{
+    if (err) res.json({ status: "error", message: err }) 
+    else     res.json(successMsg)    
+}
 
 
 

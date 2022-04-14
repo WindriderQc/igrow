@@ -165,7 +165,7 @@ let streamTextArray = []
 let latestData
 const mqttlogin = JSON.parse('<%- mqttinfo %>')
 
-let iot = new Iot(mqttlogin, devicesList)
+let iot = new Iot(mqttlogin, devicesList, 'ws://192.168.0.33:9001')
 iot.mqClient.publish('esp32', 'Browser Client subscribing...')
 iot.mqClient.subscribe("esp32/#")
 iot.setDevicesListOnList("devicesList", "statusList")

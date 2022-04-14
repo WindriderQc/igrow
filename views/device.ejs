@@ -36,7 +36,7 @@
                         <div class="collapse show" id="collapseOutput">
                          
                             <form>
-                                <% configs.forEach(cfg =>{ %> 
+                                <% devices.espConfigs.forEach(cfg =>{ %> 
 
                                     <% if(cfg.id == selected) { %>
                                     
@@ -181,20 +181,7 @@
                 </div>
 
 
-                <div class="col-sm-4 px-1">
-                    <div class="card shadow">
-
-                        <a href="#collapseFarmCam" class="d-block card-header py-3 text-center" data-toggle="collapse"
-                            role="button" aria-expanded="true" aria-controls="collapseFarmCam">
-                            <p class="m-0 font-weight-bold text-secondary">Live Cam</p>
-                        </a>
-                        <div class="collapse show" id="collapseFarmCam">
-                            <%- include('partials/camera', {server: "192.168.0.33", name: "keeper", smWidth: 12}) %>      
-                        </div>
-
-                    </div>
-                </div>
-                <div class="col-sm-4 px-1">
+                <div class="col-sm-8 px-1">
                     <div class="card shadow">
                         <a href="#collapseStats" class="d-block card-header py-3 text-center" data-toggle="collapse"
                             role="button" aria-expanded="true" aria-controls="collapseStats">
@@ -222,8 +209,8 @@
 <script>
 
     const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why
-    const devicesList =  <%- JSON.stringify(devices) %>;
-    const configs =  <%- JSON.stringify(configs) %>;
+    const devicesList =  <%- JSON.stringify(devices.list) %>;
+    const devices =  <%- JSON.stringify(devices) %>;
     const alarmList =  <%- JSON.stringify(alarmList) %>;
     const apiUrl =  <%- JSON.stringify(apiUrl) %>;
 
@@ -247,7 +234,7 @@ console.log(mqClient)
 
 mqClient.on('error', (err) =>{   console.log(err)    })
 
-const str = JSON.stringify(configs, null, '\t') //  the null, '\t' is to prettyfy the string
+const str = JSON.stringify(devices, null, '\t') //  the null, '\t' is to prettyfy the string
 document.getElementById('configText').innerHTML = str
 
 

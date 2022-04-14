@@ -49,6 +49,21 @@ router.route('/users/:user_id')
 
 
 
+const deviceController = require('../controllers/deviceController')
+
+router.route('/devices')
+    .get(deviceController.index)
+ //   .post(deviceController.new)  //  use patch instead which will create or update
+
+router.route('/devices/:id')
+    .get(deviceController.readOne)
+    .patch(deviceController.update)
+    .delete(deviceController.deleteOne)
+
+router.route('/devices/deleteAll').get(deviceController.deleteAll)    
+
+
+
 const heartbeatController = require('../controllers/heartbeatController')
 
 router.route('/heartbeats')

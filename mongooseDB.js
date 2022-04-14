@@ -5,7 +5,7 @@ const url = process.env.MONGO_URL ? process.env.MONGO_URL : "mongodb://127.0.0.1
 let _collections 
 let isReady = false
 // mongoose with local DB
-mongoose.connect( url,  { family: 4, useNewUrlParser: true, useUnifiedTopology: true }, (err)=>{ if (err) console.log(err)})// family: 4    skip  default IPV6 connection  and accelerate connection.
+mongoose.connect( url,  { family: 4, useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false  }, (err)=>{ if (err) console.log(err)})// family: 4    skip  default IPV6 connection  and accelerate connection.
 
 mongoose.connection.on('error', console.error.bind(console, 'conn error:'))
 
