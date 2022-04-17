@@ -3,8 +3,6 @@ const fetch = require('node-fetch')
 //const verify = require('./verifyToken')
 const moment = require('moment')
 
-const alarmController = require('../controllers/alarmController')
-const userController = require('../controllers/userController')
 const espConfigs = require('../esp32configs')
 const {esp32} = require('../esp32')
 const getMqtt = require('../serverMqtt').getMqttClient
@@ -12,10 +10,10 @@ const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
 
 
-const mdb = require('../mongooseDB')
 
-const apiUrl = process.env.IGROW_IP
-const mqttUrl = process.env.MQTT_URL
+
+const apiUrl = process.env.DATA_API
+const mqttUrl = "ws://" + process.env.MQTT_SERVER_IP
 const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
 
@@ -42,13 +40,19 @@ router.get('/empty', (req, res) => {  res.render('empty') })
 
 router.get('/cams',  (req, res) => {  res.render('cams')  })
 
-const HeartbeatDB = require('../models/heartbeatModel')
+
 
 
 router.get('/device',  async (req, res) => {
    
-    const list = await HeartbeatDB.distinct("sender")
-    let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0]  //  default on 1st device if none is saved in session
+    //const url = `${apiUrl}/database/list?skip=${params.skip}&limit=${params.limit}&sort=${params.sort}&collection=${params.collection}`
+    const response = await fetch(apiUrl + "/api/devices")
+    const result = await response.json()
+    
+    console.log(result.data)
+   // const list = await HeartbeatDB.distinct("sender")
+    const list = result.data
+    let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0].id  //  default on 1st device if none is saved in session
     selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
     console.log(selectedDevice)
   
@@ -63,7 +67,10 @@ router.get('/device',  async (req, res) => {
 
 router.get('/graphs',  async (req, res) => { 
 
-    const list = await HeartbeatDB.distinct("sender")
+
+    const response = await fetch(apiUrl + "/api/devices")
+    const result = await response.json()
+    const list = result.data
     let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0]  // req.query.deviceID ? req.query.deviceID : list[0]  
     console.log('loading graf: ', selectedDevice )
     
@@ -83,35 +90,13 @@ router.post('/selectDevice', async (req, res) => {
 
 })
 
-/*router.post('/graphs',  async (req, res) => { 
-   
-    req.session.selectedDevice = req.body.selection
-    req.session.save(async (err) => { 
-        if(err) console.log('Session error: ', err)
-        console.log(req.session)
-        res.redirect('/graphs')
-       // const list = await HeartbeatDB.distinct("sender")
-      //  res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: req.body.selection, apiUrl: apiUrl, mqttUrl: mqttUrl })
-    }) */
 
-/*req.session.selectedDevice = req.body.selection
-    return new Promise((resolve, reject) => {
-        req.session.save((err) => {      
-          if (err)  reject(err) 
-          console.log('Yooo', req.session)
-          resolve(res.redirect(apiUrl + '/graphs'))
-        })
-      })*/
+router.get('/settings',  async (req, res) => {
 
-
-
-const User = require('../models/userModel');
-router.get('/settings',  (req, res) => {
-
-    User.get((err, users)=> { 
-        if(err) console.log(err)
-        res.render('settings', {users: users})
-    })
+    const response = await fetch(apiUrl + "/api/users")
+    const result = await response.json()
+    const users = result.data
+    res.render('settings', {users: users})
     
 })
 
@@ -125,10 +110,11 @@ router.get('/iot',  async (req, res) => {
     res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
 })
 
-router.get('/database',  (req, res) => {
-    const list = mdb.getCollections()
-    console.log('Sending collection list to client: ', JSON.parse(list))
-    res.render('database', {collectionList: list })
+router.get('/database',  async (req, res) => {
+    const response = await fetch(apiUrl+'/database/collectionList')
+    const list = await response.json()
+    console.log('Sending collection list to client: ', list)
+    res.render('database', {collectionList: JSON.stringify(list) })
 })
 
 router.get('/weather/:latlon', async (req, res) => {
@@ -263,6 +249,64 @@ router.post('/set_io', (req, res) => {
   //  res.redirect("/ioCard.html?io_id=" + req.body.io_id + "&name_id=" + req.body.name_id)
     res.redirect('/iot')
 })
+
+
+
+
+let nodeTools = require('../nodeTools')
+
+
+router.route('/alarms/setAlarm').post(async (req, res) => { 
+
+    console.log('post received: Set_alarm')
+    //console.log(JSON.stringify(req.body))
+
+    let als = {}
+    als.espID =   req.body.device_id //'ESP_35030'  //  'ESP_15605'    ESP_35030
+    als.io = req.body.io_id
+    als.tStart = req.body.tStart //moment(req.body.tStart).format('YYYY-MM-DD HH:MM:SS')
+    als.tStop = req.body.tStop 
+
+    let option = {
+        method: 'POST',
+        headers: {
+            'auth-token': req.session.userToken ,
+            'Content-type': 'application/json'   
+        },
+        body: JSON.stringify(als)
+    }
+    try {
+        const response = await fetch(process.env.DATA_API + "/api/alarms", option)
+        const data = await response.json()
+     
+        if (nodeTools.isObjEmpty(data)) {
+            const message = "Error saving alarm";
+            console.log(message)
+            //return res.status(400).send(message);
+        }
+        else {  //  send new alarm to already connected ESP.  Non connected ESP will receive the alarm at next boot.
+            let mq = getMqtt()
+            let topic = 'esp32/' + als.espID + '/io' 
+            let startTime = moment(als.tStart).local().format('HH:mm:ss')
+            let stopTime = moment(als.tStop).local().format('HH:mm:ss')
+            mq.publish('esp32/' + als.espID + '/io/sunrise', als.io + ":" + startTime)
+            mq.publish('esp32/' + als.espID + '/io/nightfall', als.io + ":" + stopTime)
+            console.log({topic, startTime, stopTime})
+        }
+
+    }
+    catch (err) {
+        console.error(err)
+    }
+
+    req.session.selectedDevice = als.espID
+
+    res.redirect("/device")
+
+})
+
+
+
 
 
 module.exports = router;

@@ -106,7 +106,7 @@
                         <div class="collapse show" id="collapseTimerz">
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item">
-                                    <form class='form-inline' action="/api/alarms/setAlarm" method="post" enctype="application/json">
+                                    <form class='form-inline' action="/alarms/setAlarm" method="post" enctype="application/json">
                                         <input type="hidden" id="tStart" name="tStart" value="">
                                         <input type="hidden" id="tStop" name="tStop" value="">
                                         <input type="hidden" id="device_id" name="device_id" value="">
@@ -207,6 +207,7 @@
 
 
 <script>
+    
 
     const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why
     const devicesList =  <%- JSON.stringify(devices.list) %>;
@@ -264,7 +265,7 @@ async function setDevicesListOnSelect( selectedOption = 0, onChangeCallback = nu
 {
     if(devicesList.length != 0) {
         for(let index in devicesList) {  // fill up select option array if devicesList is not empty
-            selectDom.options[selectDom.options.length] = new Option(devicesList[index], index)
+            selectDom.options[selectDom.options.length] = new Option(devicesList[index].id, index)
         }
         
         selectDom.options[selectedOption].selected = "true"  //  set default selection
@@ -300,8 +301,16 @@ $(() => {
     mqClient.subscribe("esp32/alarmList")
     setDevicesListOnSelect( 0, updateHiddenSelected)
 
-    let s = devicesList.indexOf('<%- selected %>')
-    selectDom.options[s].selected = "true"
+    console.log(devicesList.length)
+
+    let index = -1
+    for(let i = 0; i < devicesList.length; i++) {
+        console.log(devicesList[i].id)
+        if(devicesList[i].id == '<%- selected %>')
+            index = i
+    }
+   
+    selectDom.options[index].selected = "true"
     selectedDevice = selectDom.options[selectDom.selectedIndex].text
     console.log("Setting selected: " + selectedDevice)
 

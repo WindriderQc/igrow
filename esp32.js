@@ -1,7 +1,7 @@
 const fetch = require('node-fetch'),
  moment = require('moment'),
  configs = require('./esp32configs'),
- apiUrl = process.env.IGROW_IP + '/api'
+ apiUrl = process.env.DATA_API + '/api'
 
 
 let commBuff = []
