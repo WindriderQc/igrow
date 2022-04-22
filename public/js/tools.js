@@ -137,7 +137,36 @@ const Tools = {
             }
 
     }, 
-  
+
+    getSelectedOption: (select_id) => {
+            var opt
+            for ( var i = 0, len = select_id.options.length; i < len; i++ ) {
+                opt = select_id.options[i]
+                if ( opt.selected === true ) {
+                    break
+                }
+            }
+            return opt
+    },
+
+    showArrayOnDOM: (listArray, domId) => {
+        
+            let items = listArray
+            let listspan = document.createElement('span')
+
+            document.getElementById(domId).appendChild(listspan)
+
+            items.forEach( item =>{
+                let li = document.createElement('p')
+                listspan.appendChild(li)
+
+                li.innerHTML += JSON.stringify(item, null, '\t') //  the null, '\t' is to prettyfy the string
+            })
+            const str = JSON.stringify(listArray, null, '\t') //  the null, '\t' is to prettyfy the string
+            console.log(str)
+    },
+
+
 
     data: {
 

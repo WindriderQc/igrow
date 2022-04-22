@@ -13,8 +13,8 @@ Tools.readFile("greetings.txt")
 
 
 const apiUrl = process.env.DATA_API
-const mqttUrl = "ws://" + process.env.MQTT_SERVER_IP
-const mqttinfo = JSON.stringify({ user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
+const mqttUrl = "ws://" + process.env.MQTT_SERVER_IP + ":9001" 
+const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
 
 ////   free routes
@@ -71,10 +71,14 @@ router.get('/graphs',  async (req, res) => {
     const response = await fetch(apiUrl + "/api/devices")
     const result = await response.json()
     const list = result.data
-    let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0]  // req.query.deviceID ? req.query.deviceID : list[0]  
+    let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0].id  // req.query.deviceID ? req.query.deviceID : list[0]  
     console.log('loading graf: ', selectedDevice )
     
-    res.render('graphs',{ mqttinfo: mqttinfo, devices: list, selected: selectedDevice, apiUrl: apiUrl, mqttUrl: mqttUrl })
+
+    const registered = await esp32.getRegistered()
+    const devices = { list, registered }
+
+    res.render('graphs',{ mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, apiUrl: apiUrl })
 })
 
 
@@ -96,7 +100,16 @@ router.get('/settings',  async (req, res) => {
     const response = await fetch(apiUrl + "/api/users")
     const result = await response.json()
     const users = result.data
-    res.render('settings', {users: users})
+
+    const response2 = await fetch(apiUrl + "/api/devices")
+    const result2 = await response2.json()
+    const devices = result2.data
+
+    const response3 = await fetch(apiUrl + "/api/alarms")
+    const result3 = await response3.json()
+    const alarms = result3.data
+
+    res.render('settings', {users: users, devices: devices, alarms: alarms})
     
 })
 

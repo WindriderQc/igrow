@@ -168,10 +168,8 @@
 <script>
 
 const mqttlogin = JSON.parse('<%- mqttinfo %>')
-const devicesList =  <%- JSON.stringify(devices) %>;
+const devicesList =  <%- JSON.stringify(devices.list) %>;
 const apiUrl = <%- JSON.stringify(apiUrl) %>;
-const mqttUrl = <%- JSON.stringify(mqttUrl) %>;
-console.log(mqttUrl, devicesList)
 
 let latestData = ""   // TODO:  hmmmmm     peut pas marcher pour plusieurs client....   wtf...
 let dataCount = 0
@@ -183,8 +181,9 @@ let mqttOptions = {
     password: mqttlogin.pass
 }
 
+
 console.log('\nattempting mqtt connect mqtt client:')
-const mqClient = mqtt.connect(mqttUrl, mqttOptions)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
+const mqClient = mqtt.connect(mqttlogin.url, mqttOptions)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
 
 mqClient.on('error', (err) =>{   console.log(err)    })
 
@@ -205,9 +204,9 @@ async function setDevicesListOnSelect( selectedOption = 0 )
 {
     if(devicesList.length != 0) {
         for(let index in devicesList) {  // fill up select option array if devicesList is not empty
-            selectDom.options[selectDom.options.length] = new Option(devicesList[index], index)
+            selectDom.options[selectDom.options.length] = new Option(devicesList[index].id, index)
         }
-        
+        console.log(selectDom.options[selectedOption], selectedOption)
         selectDom.options[selectedOption].selected = "true"  //  set default selection
         selectedDevice = selectDom.options[selectedOption].text
               
@@ -305,8 +304,12 @@ $(() => {
     mqClient.subscribe("esp32/#")
 
     const sel = '<%- selected %>'
-    console.log(sel)
-    let s = devicesList.indexOf(sel)  //  récupère l'index de la sélection de la session
+    
+   // let s = devicesList.indexOf(sel)  //  récupère l'index de la sélection de la session
+    const s = devicesList.map(a => a.id).indexOf(sel)
+
+
+    console.log("Selection: ", sel, "index: ", s)
     setDevicesListOnSelect(s) //  affiche la  sélection de la session sur le Select  et sauvegarde la sélection
    
     mqClient.on('message', (topic, payload) => {

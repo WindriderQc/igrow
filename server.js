@@ -4,9 +4,8 @@ session = require('express-session'),
 MongoDBStore = require('connect-mongodb-session')(session),
 serveIndex = require('serve-index'),
 path = require('path'),
-cors = require('cors'),
-rateLimit = require('express-rate-limit')
-
+cors = require('cors')/*,
+rateLimit = require('express-rate-limit')*/
 
 const IN_PROD = process.env.NODE_ENV === 'production'  // for https channel...  IN_PROD will be true if in production environment
 
