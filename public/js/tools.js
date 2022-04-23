@@ -2,78 +2,38 @@
 
 const Tools = {
     
-    sleep: (ms) =>{
-            return new Promise(resolve => setTimeout(resolve, ms))
-        },
+    cliError: (err) => {          console.error(`ERROR(${err.code}): ${err.message}`)        },
+
+    cliWarning: (warn) => {       console.warn(`WARNING(${warn.code}): ${warn.message}`)     },
+
+
+    sleep: (ms) =>{        return new Promise(resolve => setTimeout(resolve, ms))        },
    
-      
-    fillForm: (formId, data) => {
-            const { elements } = document.getElementById(formId)
 
-            for (const [ key, value ] of Object.entries(data) ) 
-            {
-                const field = elements.namedItem(key)
-                field && (field.value = value)
-            }
-        },
+    getHostIP: ()=> {       return window.location.hostname                              },  //let serv = 'https://' + window.location.hostname    TODO: https
+         
 
+    randomScalingFactor: () => {        return Math.round(Math.random() * 100)           },
 
+    random_hex_color_code: () => {        return "#" + Math.floor(Math.random()*16777215).toString(16)    },    
 
-    scale: (num, in_min, in_max, out_min, out_max) =>{         
-            return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-        },
-  
-        
-    randomScalingFactor: () => {
-            return Math.round(Math.random() * 100)
-        },
+    randomArray4: () => {        return [ Math.round(Math.random() * 100), Math.round(Math.random() * 100), Math.round(Math.random() * 100), Math.round(Math.random() * 100) ]    },
 
-
-    randomData: () => {
-            return [
-                Math.round(Math.random() * 100),
-                Math.round(Math.random() * 100),
-                Math.round(Math.random() * 100),
-                Math.round(Math.random() * 100)
-                ]
-        },
-
-
-    random_hex_color_code: () => {
-        let randomColor = Math.floor(Math.random()*16777215).toString(16);
-        return "#" + randomColor
-        },
     
+    scale: (num, in_min, in_max, out_min, out_max) =>{         
+        return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+    },
 
-    randomValue : (data) => {
-            return Math.max.apply(null, data) * Math.random()
-        },
 
-  
-    postData : async (url = '', data='') => {   //  Used to send command to ESP-01 from client
-            let option = {
-            method: 'POST',
-            headers: {
-                
-                'Content-type': 'application/x-www-form-urlencoded',  
-                'Content-length': data.length   
-            },
-            body : data //JSON.stringify(data)
-            }
-            console.log (option)
-            // const response = await fetch(url, option)
-            fetch(url, option)
-                .then(response => response.text())
-                .then(body => {
-                    try {
-                        return JSON.parse(body);
-                    } catch {
-                        throw Error(body);
-                    }
-                })
-                .then(console.log)
-                .catch(console.error)
-        }, 
+    fillForm: (formId, data) => {
+        const { elements } = document.getElementById(formId)
+
+        for (const [ key, value ] of Object.entries(data) ) 
+        {
+            const field = elements.namedItem(key)
+            field && (field.value = value)
+        }
+    },
   
      
     formatTime : (timestamp) => {
@@ -89,30 +49,22 @@ const Tools = {
             seconds.toString().padStart(2, '0'); 
 
             return(formattedTime)
-        },
+    },
 
 
     isObjEmpty: (obj) => {
-            for(let i in obj) return false; 
-            return true;
-        },
+            for(let i in obj) return false
+            return true
+    },
     
-
-    cliError: (err) => {
-            console.error(`ERROR(${err.code}): ${err.message}`)
-        },
-
-
-    cliWarning: (warn) => {
-            console.warn(`WARNING(${warn.code}): ${warn.message}`)
-        },
 
     isGeoLocAvailable: () => {
             const yesno = ('geolocation' in navigator)
             console.log( yesno ? 'geolocation available:\n' : 'geolocation not available  :(')
             return yesno
-        },
+    },
     
+
     geoLocate: () => {
             return new Promise((resolve, reject) => {
                 /*
@@ -123,8 +75,9 @@ const Tools = {
                 const options = { enableHighAccuracy: true,  maximumAge: 0  }// timeout: 5000,
                 navigator.geolocation.getCurrentPosition(resolve, reject, options)
             })
-        },  
+    },  
         
+
     ipLookUp: async () => {
             try {
                 const response = await fetch('http://ip-api.com/json')
@@ -138,6 +91,7 @@ const Tools = {
 
     }, 
 
+
     getSelectedOption: (select_id) => {
             var opt
             for ( var i = 0, len = select_id.options.length; i < len; i++ ) {
@@ -148,6 +102,7 @@ const Tools = {
             }
             return opt
     },
+
 
     showArrayOnDOM: (listArray, domId) => {
         
@@ -184,15 +139,43 @@ const Tools = {
                 return data
             } 
             catch (e) {  console.log(e)   }
-        }
-        /* with P5:
-            let Iss
-            function getISS_location()   {
-                let url = 'http://api.open-notify.org/iss-now.json'
-                loadJSON(url, (data) => Iss = data )
+
+            /* with P5:
+                let Iss
+                function getISS_location()   {
+                    let url = 'http://api.open-notify.org/iss-now.json'
+                    loadJSON(url, (data) => Iss = data )
+                }
+                setInterval(getISS_location, 1000)
+            */
+
+        }, 
+       
+
+        postData : async (url = '', data = '') => {   //  Used to send command to ESP-01 from client
+            let option = {
+            method: 'POST',
+            headers: {
+                
+                'Content-type': 'application/x-www-form-urlencoded',  
+                'Content-length': data.length   
+            },
+            body : data //JSON.stringify(data)
             }
-            setInterval(getISS_location, 1000)
-        */
+            console.log (option)
+            // const response = await fetch(url, option)
+            fetch(url, option)
+                .then(response => response.text())
+                .then(body => {
+                    try {
+                        return JSON.parse(body);
+                    } catch {
+                        throw Error(body);
+                    }
+                })
+                .then(console.log)
+                .catch(console.error)
+        }
 
     },
     

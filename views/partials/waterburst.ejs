@@ -46,8 +46,8 @@ async function waterburst()
 {
     console.log ('waterburst post received, sending relay request:')
     try {
-        Tools.postData("http://192.168.0.212/RELAY", 'state=ON')
-        setTimeout(() => Tools.postData("http://192.168.0.212/RELAY", 'state=OFF'), 3000)        
+        Tools.data.postData("http://192.168.0.212/RELAY", 'state=ON')
+        setTimeout(() => Tools.data.postData("http://192.168.0.212/RELAY", 'state=OFF'), 3000)        
     }
     catch (err) {  console.error(err)  }
 }

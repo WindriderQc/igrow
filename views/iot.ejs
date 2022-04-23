@@ -8,10 +8,6 @@
  <link rel="stylesheet" type="text/javascript" href="css/YBs.css">
 
  <%- include('partials/p5') %> 
-
- <script type="text/javascript" src="js/iot.js"></script>
- <script type="text/javascript" src="js/p5.speech.js"></script>
- <script type="text/javascript" src="js/nestor.js"></script>
  
 </head>
 
@@ -145,39 +141,120 @@ Esp32 are listening to :</br>
         
 <script>
    
-let serv = 'http://' + window.location.hostname //let serv = 'https://' + window.location.hostname    TODO: https
-console.log('Server is at: ' + serv)
-
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log('Document ready  - JS Only')
-})
-
+   console.log('Document ready  - JS  (without JQUERY)')
+   console.log('Server is at: ' + Tools.getHostIP())
+    
+   console.log('Devices from ejs: ', devicesList)
+ })
+/*
 $(()=>{
    console.log('Document ready  - JQUERY')
-});
+})
+*/
 
-console.log('Devices from ejs: ')
+
 const devicesList = <%- JSON.stringify(devices) %>
-console.log(devicesList)
-
+const mqttlogin = JSON.parse('<%- mqttinfo %>')
 let streamTextArray = []
 let latestData
-const mqttlogin = JSON.parse('<%- mqttinfo %>')
 
-let iot = new Iot(mqttlogin, devicesList, 'ws://192.168.0.33:9001')
-iot.mqClient.publish('esp32', 'Browser Client subscribing...')
-iot.mqClient.subscribe("esp32/#")
-iot.setDevicesListOnList("devicesList", "statusList")
-iot.setDevicesListOnSelect('devices_select')
-
-function updateStatus() {    iot.updateStatus()    }
-setInterval(updateStatus, 1000)    //  TODO : PKoi ca ne peut pas etre dans le constructor de IoT??   Pkoi on doit avoir une helper function et non utiliser iot.updateStatus?  Both tested but no luck
+let selectedDevice = ""
+let selectDom = ""
+let changeCallback = null
+     
 
 
-function mqttPost()
+function mqttPost() {    mqClient.publish(document.getElementById('topic').value, document.getElementById('msg').value)     }
+
+
+async function setDevicesListOnSelect(html_dom, selectedOption = 0, onChangeCallback = null )
 {
-   iot.mqClient.publish(document.getElementById('topic').value, document.getElementById('msg').value)
+    selectDom = html_dom
+    if(onChangeCallback) changeCallback = onChangeCallback 
+
+
+    if(devicesList.length != 0) {
+        let select = document.getElementById(selectDom)
+
+        for(let index in devicesList) {
+            select.options[select.options.length] = new Option(devicesList[index].id, index)
+        }
+
+        select.options[selectedOption].selected = "true"
+        
+        selectedDevice = select.options[selectedOption].text
+        if(onChangeCallback) { changeCallback = onChangeCallback; changeCallback(); } 
+    }  
+    else  console.log('no ESP found in DB')   
+}
+
+
+function updateSelected()
+{ 
+    selectedDevice = $("#" + selectDom + ">option:selected").text()
+    console.log("Selecting: " + selectedDevice)
+
+    if(changeCallback) changeCallback()  
+}
+
+
+function setSelected(espID)
+{ 
+    let select = document.getElementById(selectDom)
+    let s = deviceList.indexOf(espID)
+    
+    select.options[s].selected = "true"
+    
+    selectedDevice = $("#" + selectDom + ">option:selected").text()
+    console.log("Setting selected: " + selectedDevice)
+}
+
+
+async function updateStatus()
+{       
+    const list =  devicesList
+    
+    list.forEach( async (esp) =>{      //  TODO:  détecte les disconnected.   mais juste si IoT.ejs est affiché...  doit etre dans serveur...
+    
+        const latest =  await fetch('/deviceLatest/' + esp)
+        const result = await latest.json()
+
+        document.getElementById(esp + '_li2').innerHTML = result.lastConnect.toFixed(4) 
+    })
+}
+
+
+async function setDevicesListOnList(dom_list, dom_status, _callback = null)
+{
+    domList = dom_list
+            
+    let items = devicesList
+    let sender_ul = document.createElement('ul')
+    let status_ul = document.createElement('ul')
+    
+    document.getElementById(dom_list).appendChild(sender_ul)
+    document.getElementById(dom_status).appendChild(status_ul)
+    
+    
+    items.forEach( async (esp) =>{
+
+        const latest =  await fetch('/deviceLatest/' + esp)
+        const result = await latest.json()
+        console.log(result)
+            
+
+        let li = document.createElement('li')
+        li.id = esp + '_li'
+        sender_ul.appendChild(li)
+        li.innerHTML += esp
+    
+        let li2 = document.createElement('li')
+        li2.id = esp + '_li2'
+        status_ul.appendChild(li2)
+        li2.innerHTML = "OFF" //result //"status"
+    })      
 }
 
 
@@ -191,28 +268,43 @@ function sendSetIO()
    const msg = io_id
    console.log('Setting IO: ' + msg)
     
-   iot.mqClient.publish(topic, msg)
+   mqClient.publish(topic, msg)
 }
  
 
 
 
-iot.mqClient.on('message', (topic, payload) => {
 
-   streamTextArray.push(topic + " : " + payload.toString()) 
-   const area = document.getElementById('streamTextArea')
-   
-   if(area.scrollTop + area.clientHeight == area.scrollHeight) {  // User has scrolled to the bottom of the element
+
+
+
+
+
+
+console.log('attempting mqtt connect...')
+const mqClient = mqtt.connect(mqttlogin.url, { rejectUnauthorized: false, username: mqttlogin.user, password: mqttlogin.pass })   //TODO  hardcoded IP + check...  using ws to connect not ssl secure //  TODO : NOT SAFE!!  Option User/Pass  visible dans la console....   utiliser le header pour ca?  ou mettre en SSL
+console.log('mqtt client:', mqClient)
+
+mqClient.publish('esp32', 'Browser Client subscribing...')
+mqClient.subscribe("esp32/#")
+
+mqClient.on('error', (err) =>{   console.log(err)    })
+mqClient.on('message', (topic, payload) => {
+
+    streamTextArray.push(topic + " : " + payload.toString()) 
+    const area = document.getElementById('streamTextArea')
+
+    if(area.scrollTop + area.clientHeight == area.scrollHeight) {  // User has scrolled to the bottom of the element
         area.value = streamTextArray.join("\n");
         area.scrollTop = area.scrollHeight
     }
     else  area.value = streamTextArray.join("\n"); 
-   
+
     //console.log('message:', topic)
     if((topic.indexOf("alive") >=0) || (topic.indexOf("data") >=0)) {
 
- 
-      try {
+
+    try {
             let data = JSON.parse(payload)
             const sender = data.sender
             const timestamp = data.time
@@ -223,23 +315,30 @@ iot.mqClient.on('message', (topic, payload) => {
 
 
             if (typeof data.wifi != 'undefined') {
-               document.getElementById(sender+'rss_id_value_id').innerHTML =  data.wifi
-               document.getElementById(sender+'temp_id_value_id').innerHTML =  data.CPUtemp
+                document.getElementById(sender+'rss_id_value_id').innerHTML =  data.wifi
+                document.getElementById(sender+'temp_id_value_id').innerHTML =  data.CPUtemp
             }
             if(typeof data.battery != 'undefined') {
-               document.getElementById(sender+'batt_id_value_id').innerHTML =  data.battery
-               document.getElementById(sender+'humid_id_value_id').innerHTML =  data.airHumid
+                document.getElementById(sender+'batt_id_value_id').innerHTML =  data.battery
+                document.getElementById(sender+'humid_id_value_id').innerHTML =  data.airHumid
             }else{
-               console.log(latestData); 
+                console.log(latestData); 
             }
 
             
 
-         }
-         catch(err) {   console.log(payload.toString());  console.log(err)      } 
+        }
+        catch(err) {   console.log(payload.toString());  console.log(err)      } 
 
-      }
+    }
 })
+
+
+
+setDevicesListOnList("devicesList", "statusList")
+setDevicesListOnSelect('devices_select')
+
+setInterval( updateStatus, 1000)
 
   
 
@@ -255,5 +354,9 @@ iot.mqClient.on('message', (topic, payload) => {
 </div>
 
 <%- include('partials/footer') %>
+
+<script type="text/javascript" src="js/p5.speech.js"></script>
+<script type="text/javascript" src="js/nestor.js"></script>
+
 </body>
 </html>
