@@ -46,17 +46,16 @@ router.get('/cams',  (req, res) => {  res.render('cams')  })
 router.get('/device',  async (req, res) => {
    
     //const url = `${apiUrl}/database/list?skip=${params.skip}&limit=${params.limit}&sort=${params.sort}&collection=${params.collection}`
-    const response = await fetch(apiUrl + "/api/devices")
+    const response = await fetch(apiUrl + "/api/devices")// const list = await HeartbeatDB.distinct("sender")
     const result = await response.json()
-    
-    console.log(result.data)
-   // const list = await HeartbeatDB.distinct("sender")
+  //  console.log(result.data)
     const list = result.data
     let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0].id  //  default on 1st device if none is saved in session
     selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
     console.log(selectedDevice)
   
-    const alarmList = await alarmController.getAll() //console.log(alarmList)
+    const response2 = await fetch(apiUrl + "/api/alarms")
+    const alarmList = await response2.json()
 
     const registered = await esp32.getRegistered()
     const devices = { list, registered, espConfigs }

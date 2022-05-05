@@ -90,27 +90,18 @@ const esp32 = {
 
     validConnected: () => {
         registered.forEach((device) => {
-            const last = moment(commBuff[device.id][commBuff[device.id].length -1].time)
-            const seconds = esp32.timeSince(last, 'second') 
-           // console.log(seconds)  
-            if(seconds >= DISCONNECT_TIMOUT) {
-                if (device.connected) console.log(device.id + ' disconnected!!')
-                device.connected = false
-            } 
-            else device.connected = true
-        })
-    
+            if(commBuff[device.id]) {
 
-        /*connected.forEach((sender) => {
-            console.log('check: ' + sender)
-            const last = moment(commBuff[sender.sender][commBuff[sender.sender].length -1].time)
-            console.log(last)
-           const seconds = esp32.timeSince(last, 'second')   
-           if(seconds>=2) {
-              sender.connected = false 
-              console.log(sender.sender + ' disconnected!!')
-           } 
-        })*/
+                const last = moment(commBuff[device.id][commBuff[device.id].length -1].time)
+                const seconds = esp32.timeSince(last, 'second') 
+            // console.log(seconds)  
+                if(seconds >= DISCONNECT_TIMOUT) {
+                    if (device.connected) console.log(device.id + ' disconnected!!')
+                    device.connected = false
+                } 
+                else device.connected = true
+            }
+        })
     },
 
     receiveMessage: async (data) =>
@@ -137,18 +128,12 @@ const esp32 = {
         else {    
             //  First message received for this sender
             console.log("New device connected: ")
-          //  connected[data.sender] = []
-          //  connected[data.sender].push({ sender: data.sender, connected: true })
             esp32.getRegistered() //  update registered list
-           // console.log(connected)
             commBuff[data.sender] = []
             commBuff[data.sender].push(data)
-            
             console.log("Loading registered:")
-          //registered[data.sender].connected = true
             lastSavedPost[data.sender] = data
             await esp32.saveEspPost(data)
-           
         }
         //console.log(commBuff[data.sender].length)
         //console.log(commBuff)
@@ -160,27 +145,5 @@ const esp32 = {
 }
 
 
-
 module.exports = {esp32}
 //module.exports = {commBuff, registered}
-
-/*
-let now =  new moment()
-let stamp =  new moment(data.time).format('YYYY-MM-DD HH:mm:ss') 
-let duration = new moment.duration(now.diff(stamp)).asHours();
-
-data.lastConnect = duration
-
-if(data.wifi != -100) {
-     if(duration > 0.005)  
-     {
-        console.log('Device disconnected !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        data.wifi   = -100
-        delete data._id
-        let dat = JSON.stringify(data)
-        console.log(dat)
-        let mq = getMqtt()
-        mq.publish('esp32/alive/'+req.params.esp, dat)  //  server sends a mqtt post on behalf of esp to log a last wifi -100 signal in db.
-     }
- }
-*/

@@ -60,7 +60,7 @@ function initMqtt()
             //esp32.saveEspPost(heartbeat)
             esp32.receiveMessage(heartbeat)
         }
-        else { printmsg(topic, message) }  // prints all other messages to console   
+        else { consoleMsg(topic, message) }  // prints all other messages to console   
     })
 
 
@@ -72,7 +72,7 @@ function initMqtt()
 
 
 
-function printmsg(topic, message) 
+function consoleMsg(topic, message) 
 {
     try {  
         let msg

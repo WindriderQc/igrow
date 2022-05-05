@@ -2,13 +2,9 @@
 <html lang="en">
 
 <head>
-   <%- include('partials/head') %> 
- 
-
- <link rel="stylesheet" type="text/javascript" href="css/YBs.css">
-
- <%- include('partials/p5') %> 
- 
+    <%- include('partials/head') %> 
+    <%- include('partials/p5') %> 
+    <link rel="stylesheet" type="text/javascript" href="css/YBs.css">
 </head>
 
 
@@ -27,13 +23,11 @@
             <div class="row mt-2 col-sm-12">
 
                <%- include('partials/valueCard', {name: "ID ",                defaultValue: sender, units: "",     smWidth: 2, domID: sender+"id_id"      }); %>  
-               <%- include('partials/graph/rssGauge',  { name: "Wifi",              defaultValue: -100,   units: " dBm", smWidth: 3, domID: sender+"rss_id",  divHeight: "120px" }); %>
+               <%- include('partials/graph/rssGauge',  { name: "Wifi",        defaultValue: -100,   units: " dBm", smWidth: 3, domID: sender+"rss_id",  divHeight: "120px" }); %>
                <%- include('partials/valueCard', { name: "CPU temperature ",  defaultValue: 0,      units: "°C",   smWidth: 2, domID: sender+"temp_id"    }); %>    
                <%- include('partials/valueCard', { name: "Battery",           defaultValue: 0,      units: "v",    smWidth: 2, domID: sender+"batt_id"    }); %>  
                <%- include('partials/valueCard', { name: "Humidity",          defaultValue: 0,      units: "%",    smWidth: 2, domID: sender+"humid_id"   }); %>  
    
-      
-            
             </div>      
          <% }) %>
       </div>
@@ -55,21 +49,16 @@
 
 
     
-
-      <div class="mt-2">
-  
-         <div class="form-group green-border">
+        <div class="form-group green-border mt-2">
             <label for="streamTextArea">Streaming from Esp32(s)</label>
             <textarea class="form-control" id="streamTextArea" rows="32"></textarea>
-         </div>
-
-      </div>
+        </div>
+    
 
       <div class="row mt-2">
          
-
          <div class="col-sm-12">
-            <div class="card">
+            <div class="card ">
                <form>
                   <input type='text' id='topic' value='esp32/boot'>
                   <input type='text' id='msg' value='ESP_35030'>
@@ -79,6 +68,7 @@
          </div>
       
       </div>
+      
    </br>
 Esp32 are listening to :</br>
 - esp32</br>
@@ -179,7 +169,7 @@ async function setDevicesListOnSelect(html_dom, selectedOption = 0, onChangeCall
         let select = document.getElementById(selectDom)
 
         for(let index in devicesList) {
-            select.options[select.options.length] = new Option(devicesList[index].id, index)
+            select.options[select.options.length] = new Option(devicesList[index], index)
         }
 
         select.options[selectedOption].selected = "true"

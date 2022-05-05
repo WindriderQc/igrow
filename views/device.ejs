@@ -197,6 +197,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <div id="espList"></div>
 </div>
 </div>
 
@@ -207,14 +209,46 @@
 
 
 <script>
+
+    function json2table(data, divId) {
+
+            // (B) PARSE THE JSON STRING INTO OBJECT FIRST
+           // var data = '{"Name":"John Doe","Email":"john@doe.com","Gender":"male"}';
+             //data = JSON.parse(data)
+             console.table(data)
+            
+            // (C) GENERATE TABLE
+            // (C1) CREATE EMPTY TABLE
+            let table = document.createElement("TABLE"), row, cellA, cellB;
+            document.getElementById(divId).appendChild(table)
+            for (let key in data) {
+                // (C2) ROWS & CELLS
+                row = table.insertRow()
+                cellA = row.insertCell()
+                cellB = row.insertCell()
+                // (C3) KEY & VALUE
+                cellA.innerHTML = JSON.stringify(data[key].id) //key
+                cellB.innerHTML = JSON.stringify(data[key].config)
+            }
+    
+    }
     
 
-    const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why
-    const devicesList =  <%- JSON.stringify(devices.list) %>;
-    const devices =  <%- JSON.stringify(devices) %>;
-    const alarmList =  <%- JSON.stringify(alarmList) %>;
-    const apiUrl =  <%- JSON.stringify(apiUrl) %>;
+ 
 
+const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why
+const devicesList =  <%- JSON.stringify(devices.list) %>;
+const devices =  <%- JSON.stringify(devices) %>;
+const alarmList =  <%- JSON.stringify(alarmList) %>;
+const apiUrl =  <%- JSON.stringify(apiUrl) %>;
+
+
+const list = devices.espConfigs
+
+for(let cnf in list) {   
+    console.log(cnf.config)
+    json2table(cnf.config, 'espList')
+}
 
 let selectedDevice = ""
 let selectDom = document.getElementById('devices_select')
@@ -258,6 +292,9 @@ for (als in alarmList) {
     cell3.innerHTML = moment(alarmList[als].tStart).format('HH:mm:ss')
     cell4.innerHTML = moment(alarmList[als].tStop).format('HH:mm:ss')    
 }
+
+
+
 
 
 
@@ -339,10 +376,13 @@ function updateSelected()
     selectedDevice = selectDom.options[selectDom.selectedIndex].text
     console.log("Changing selected: " + selectedDevice)
 
-console.log(document.cookie)
+    console.log(document.cookie)
   
-document.cookie.selectedDevice = selectedDevice
+    document.cookie.selectedDevice = selectedDevice
   
+
+
+
 
     if(changeCallback) changeCallback()  
 }
