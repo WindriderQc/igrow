@@ -92,7 +92,7 @@ const Tools = {
     }, 
 
 
-    getSelectedOption: (select_id) => {
+    getDOMSelectedOption: (select_id) => {
             var opt
             for ( var i = 0, len = select_id.options.length; i < len; i++ ) {
                 opt = select_id.options[i]

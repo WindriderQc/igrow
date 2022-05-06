@@ -4,7 +4,7 @@ const fetch = require('node-fetch')
 const moment = require('moment')
 
 const espConfigs = require('../esp32configs')
-const {esp32} = require('../esp32')
+const esp32 = require('../esp32')
 const getMqtt = require('../serverMqtt').getMqttClient
 const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
@@ -13,6 +13,7 @@ Tools.readFile("greetings.txt")
 
 
 const apiUrl = process.env.DATA_API
+const iGrowUrl = process.env.IGROW_IP     //  TODO:  devrait juste check son IP, pas besoin de .env pour ca
 const mqttUrl = "ws://" + process.env.MQTT_SERVER_IP + ":9001" 
 const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
@@ -46,21 +47,30 @@ router.get('/cams',  (req, res) => {  res.render('cams')  })
 router.get('/device',  async (req, res) => {
    
     //const url = `${apiUrl}/database/list?skip=${params.skip}&limit=${params.limit}&sort=${params.sort}&collection=${params.collection}`
-    const response = await fetch(apiUrl + "/api/devices")// const list = await HeartbeatDB.distinct("sender")
-    const result = await response.json()
-  //  console.log(result.data)
-    const list = result.data
-    let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0].id  //  default on 1st device if none is saved in session
-    selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
-    console.log(selectedDevice)
-  
-    const response2 = await fetch(apiUrl + "/api/alarms")
-    const alarmList = await response2.json()
-
     const registered = await esp32.getRegistered()
-    const devices = { list, registered, espConfigs }
 
-    res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, alarmList: alarmList, apiUrl: apiUrl })
+    if(!registered.length) {
+        console.log('No devices registered yet!!!!! Cannot display device page, redirecting....')
+        res.redirect('/iot')
+    }
+    else {
+        let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : registered[0].id  //  default on 1st device if none is saved in session
+        selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
+        console.log(selectedDevice)
+    
+        const response2 = await fetch(apiUrl + "/api/alarms")
+        const alarmList = await response2.json()
+
+    
+        const devices =  registered 
+        let selDevice
+        registered.forEach(device =>{ if(device.id == selectedDevice) {  selDevice = device }  })
+        console.log('Selected Device:', selDevice.config[0])
+
+        res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: iGrowUrl })
+    }
+
+   
 })
 
 

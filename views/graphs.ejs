@@ -168,7 +168,7 @@
 <script>
 
 const mqttlogin = JSON.parse('<%- mqttinfo %>')
-const devicesList =  <%- JSON.stringify(devices.list) %>;
+const devicesList =  <%- JSON.stringify(devices.registered) %>;
 const apiUrl = <%- JSON.stringify(apiUrl) %>;
 
 let latestData = ""   // TODO:  hmmmmm     peut pas marcher pour plusieurs client....   wtf...

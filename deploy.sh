@@ -5,14 +5,18 @@ node -v
 ip a
 
 
-
 mkdir servers
 cd servers
 
 sudo npm install -g pm2
+pm2 startup systemd
 pm2 status
+
 sudo apt install git
 git clone https://github.com/WindriderQc/iGrow.git
 cd iGrow
 npm install
-npm run dev
+
+#npm run dev
+pm2 start server.js
+pm2 save

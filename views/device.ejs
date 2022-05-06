@@ -10,6 +10,33 @@
   
 </head>
 
+<style>
+    #espList {
+      font-family: Arial, Helvetica, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    #espList td, #espList th {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    
+    #espList tr:nth-child(even){background-color: #f2f2f2;}
+    
+    #espList tr:hover {background-color: #ddd;}
+    
+    #espList th {
+      padding-top: 12px;
+      padding-bottom: 12px;
+      text-align: left;
+      background-color: #04AA6D;
+      color: white;
+    }
+    </style>
+
+
+
 
 <body class="fixed-nav sticky-footer bg-light sidenav-toggled" id="page-top">
 
@@ -18,80 +45,57 @@
 <div class="content-wrapper">
 <div class="container-fluid bg-3">
 
-            <div class="row pl-1 mb-2">
-                <div class="col-sm-12 px-1">
-                    <div class='card shadow'>
-                        <select class="mx-2 my-2 form-control" id="devices_select" onchange=onSelectChange()  style="width:auto;"></select>
-                    </div>
-                </div>
+    <div class="row pl-1 mb-2">
+        <div class="col-sm-12 px-1">
+            <div class='card shadow'>
+                <select class="mx-2 my-2 form-control" id="devices_select" onchange=onSelectChange()  style="width:auto;"></select>
             </div>
+        </div>
+    </div>
 
-            <div class="row pl-1 mb-2">
-                <div class="col-sm-5 px-1">
-                    <div class='card shadow'>
-                        
-                        <a href="#collapseOutput" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseOutput">
-                            <p class="m-0 font-weight-bold text-secondary">Outputs</p>
-                        </a>
-                        <div class="collapse show" id="collapseOutput">
-                         
-                            <form>
-                                <% devices.espConfigs.forEach(cfg =>{ %> 
+    <div class="row pl-1 mb-2">  
 
-                                    <% if(cfg.id == selected) { %>
-                                    
-                                        <% cfg.config.forEach(io =>{ %>   
+        <div class="col-sm-5 px-1">
+            <div class='card shadow'> 
+                <a href="#collapseOutput" class="d-block card-header py-3 text-center" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="collapseOutput">
+                    <p class="m-0 font-weight-bold text-secondary">Outputs</p>
+                </a>
+                <div class="collapse show" id="collapseOutput">
+                    <form>
+                        <% device.config.forEach(io =>{ %>   
 
-                                            <div class='row px-4 py-2'>
+                                <div class='row px-4 py-2'>
+                                    <div class='col-sm-2'>                   
+                                        <div class='form-inline form-text mb-2 mr-2'>
+                                            <small><i class="fa fa-tags"></i><span id="io_span"> <%=io.io %></span></small>
+                                        </div>   
+                                    </div>
 
-                                                <div class='col-sm-2'>
-                                                    <div class='row'>
-                                                        <div class='form-inline form-text mb-2 mr-2'>
-                                                            <small><i class="fa fa-tags"></i><span id="io_span"> <%=io.io %></span></small>
-                                                        </div>   
-                                                    </div>
-                                                </div>
+                                    <div class='col-sm-3'>
+                                        <span class='form-inline form-text mb-2 mr-2' id="name_span"><%= io.name %></span>
+                                    </div>
 
-                                                <div class='col-sm-3'>
-                                                    <div class='row'>
-                                                        <div class='form-inline form-text mb-2 mr-2'>
-                                                            <span id="name_span"><%= io.name %></span>
-                                                        </div> 
-                                                    </div>
-                                                </div>
- 
-
-                                                <% if(io.mode == "OUT") { %>
-                                                    <div class='col-sm-7 form-inline'>
-                                                        <button type='button' class="btn btn-success" value='<%= io.io %>' onclick="sendSetIO({io:this.value, state:'on'})">ON</button>
-                                                        <button type='button' class="btn btn-warning" value='<%= io.io %>' onclick="sendSetIO({io:this.value, state:'off'})">OFF</button>
-                                                    </div>
-                                                <% } else { %>
-                                                    <div class='col-sm-7 form-inline'>
-                                                        <span id="io_span"> <%=io.lbl %></span>
-                                                    </div>
-
-                                                <% } %>
-
-                                            </div>
-
-                                        <% }) %>
-
+                                    <% if(io.mode == "OUT") { %>
+                                        <div class='col-sm-7 form-inline'>
+                                            <button type='button' class="btn btn-success" value='<%= io.io %>' onclick="sendSetIO({io:this.value, state:'on'})">ON</button>
+                                            <button type='button' class="btn btn-warning" value='<%= io.io %>' onclick="sendSetIO({io:this.value, state:'off'})">OFF</button>
+                                        </div>
+                                    <% } else { %>
+                                        <div class='col-sm-7 form-inline'>
+                                            <span id="io_span"> <%=io.lbl %></span>
+                                        </div>
                                     <% } %>
+                                </div>
 
-                                <% }) %>
-                            </form>
-
-                        </div>
-                    </div>
+                            <% }) %>
+                    </form>
                 </div>
-
-                <div class="col-sm-3 px-1">
-                    <%- include('partials/waterburst') %> 
-                </div>
-
-
             </div>
+        </div>
+
+        <div class="col-sm-3 px-1">            <%- include('partials/waterburst') %>         </div>
+
+    </div>
 
 
             <div class="row pl-1 mb-2">
@@ -194,11 +198,13 @@
                             </div>
                             <div class="card-body">
                                 <pre><div class='form-text' id='configText'>io : io</div></pre>
+                                
+                                <div id="espList"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div id="espList"></div>
+                   
 </div>
 </div>
 
@@ -210,45 +216,54 @@
 
 <script>
 
-    function json2table(data, divId) {
 
-            // (B) PARSE THE JSON STRING INTO OBJECT FIRST
-           // var data = '{"Name":"John Doe","Email":"john@doe.com","Gender":"male"}';
-             //data = JSON.parse(data)
-             console.table(data)
-            
-            // (C) GENERATE TABLE
-            // (C1) CREATE EMPTY TABLE
-            let table = document.createElement("TABLE"), row, cellA, cellB;
-            document.getElementById(divId).appendChild(table)
-            for (let key in data) {
-                // (C2) ROWS & CELLS
-                row = table.insertRow()
-                cellA = row.insertCell()
-                cellB = row.insertCell()
-                // (C3) KEY & VALUE
-                cellA.innerHTML = JSON.stringify(data[key].id) //key
-                cellB.innerHTML = JSON.stringify(data[key].config)
-            }
-    
-    }
+function json2table(data, divId) {
+
+        //console.table(data)
+
+        let table = document.createElement('TABLE'), row, cellA, cellB, cellC, cellD, cellE
+        document.getElementById(divId).appendChild(table)
+
+        // Header row.
+        const head = ['io', 'mode', 'lbl', 'isA', 'name']
+        row = table.insertRow();
+        for (let i = 0; i < head.length; i++) {
+            let headerCell = document.createElement('th');
+            headerCell.innerHTML = head[i];
+            row.appendChild(headerCell);
+        }
+        // Data
+        for (let key in data) {
+            row = table.insertRow()
+            cellA = row.insertCell()
+            cellB = row.insertCell()
+            cellC = row.insertCell()
+            cellD = row.insertCell()
+            cellE = row.insertCell()
+        
+            cellA.innerHTML = data[key].io
+            cellB.innerHTML = data[key].mode
+            cellC.innerHTML = data[key].lbl
+            cellD.innerHTML = data[key].isA
+            cellE.innerHTML = data[key].name
+        }
+
+}
     
 
  
 
 const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why
-const devicesList =  <%- JSON.stringify(devices.list) %>;
-const devices =  <%- JSON.stringify(devices) %>;
-const alarmList =  <%- JSON.stringify(alarmList) %>;
-const apiUrl =  <%- JSON.stringify(apiUrl) %>;
+const devicesList =  <%- JSON.stringify(devices) %>
+const devices =  <%- JSON.stringify(devices) %>
+const alarmList =  <%- JSON.stringify(alarmList) %>
+const apiUrl =  <%- JSON.stringify(apiUrl) %>
+const iGrowUrl =  <%- JSON.stringify(iGrowUrl) %>
 
+const device = <%- JSON.stringify(device) %>
+console.log('Device ', device)
 
-const list = devices.espConfigs
-
-for(let cnf in list) {   
-    console.log(cnf.config)
-    json2table(cnf.config, 'espList')
-}
+json2table(device.config, 'espList', 'configTable')
 
 let selectedDevice = ""
 let selectDom = document.getElementById('devices_select')
@@ -262,30 +277,33 @@ let options = {
     }
 
 
-console.log(devicesList)
+console.log('DeviceList', devicesList)
 console.log('\nattempting mqtt connect mqtt client:')
-const mqClient = mqtt.connect('ws://192.168.0.33:9001', options)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
+
+const mqClient = mqtt.connect(mqttlogin.url, options)   //TODO  hardcoded IP + check...  using ws to connect not ssl secure
 console.log(mqClient)
 
 mqClient.on('error', (err) =>{   console.log(err)    })
 
-const str = JSON.stringify(devices, null, '\t') //  the null, '\t' is to prettyfy the string
+
+
+const str = JSON.stringify([device.id, device.zone], null, '\t') //  the null, '\t' is to prettyfy the string
 document.getElementById('configText').innerHTML = str
 
 
 console.log(alarmList)
 
 // Find a <table> element with id="myTable":
-var table = document.getElementById('alarmTable')
-let i = 0
+let table = document.getElementById('alarmTable')
+let i = 1
 for (als in alarmList) {
-    var row = table.insertRow(i + 1)   // Create an empty <tr> element and add it to the 1st position of the table:
+    let row = table.insertRow(i)   // Create an empty <tr> element and add it to the 1st position of the table:
     i++
-    // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
-    var cell1 = row.insertCell(0)
-    var cell2 = row.insertCell(1)
-    var cell3 = row.insertCell(2)
-    var cell4 = row.insertCell(3)
+    // Insert new cells (<td> elements) at the "new" <tr> element:
+    let cell1 = row.insertCell(0)
+    let cell2 = row.insertCell(1)
+    let cell3 = row.insertCell(2)
+    let cell4 = row.insertCell(3)
     // Add some text to the new cells:
     cell1.innerHTML = alarmList[als].espID
     cell2.innerHTML = alarmList[als].io
@@ -391,7 +409,7 @@ function onSelectChange() {
 
     selectedDevice = selectDom.options[selectDom.selectedIndex].text
     console.log("Changing selected: " + selectedDevice)
-    window.location.replace(apiUrl + "/device?deviceID="+ selectedDevice);
+    window.location.replace(iGrowUrl + "/device?deviceID="+ selectedDevice);
 }
 
 function sendSetIO(item) 

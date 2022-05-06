@@ -3,7 +3,7 @@ require('dotenv').config()
 const mqtt = require('mqtt'),
  assert = require('assert'),
  //fetch = require('node-fetch'),
- {esp32} = require('./esp32'),
+ esp32 = require('./esp32'),
  mqttServerIp = process.env.MQTT_SERVER_IP,
  mqttUser = process.env.MQTT_USER,
  mqttPass = process.env.MQTT_PASS
@@ -41,9 +41,10 @@ function initMqtt()
             const espID = message.toString()
             console.log("Topic: ", topic, "  msg: ", espID )
             
-            esp32.register({ type: 'esp32', id: espID, configName:"default", lastBoot: Date.now(), connected: true })
+            await esp32.register(espID)
+
             esp32.setConfig(espID, mqttclient)
-            esp32.setAlarms(message, mqttclient)   //  TODO:  valider pkoi ca marche ici direct avec le buffer sans conversion string
+            await esp32.setAlarms(message, mqttclient)   //  TODO:  valider pkoi ca marche ici direct avec le buffer sans conversion string
         }
         else if (topic == 'esp32/sensors') 
         {
@@ -63,8 +64,6 @@ function initMqtt()
         else { consoleMsg(topic, message) }  // prints all other messages to console   
     })
 
-
-    setInterval(esp32.validConnected, 1000)
 
     mqtt_ = mqttclient
     return mqtt_

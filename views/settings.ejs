@@ -169,13 +169,7 @@
                             <div class="form-group">
                                 <label for="id">UID</label>
                                 <input type="text" class="form-control" id="id" name='id'>
-                            </div>
-                            <div class="form-group">
-                                <label for="configName">Config Name</label>
-                                <input type="text" class="form-control" id="configName" name='configName' placeholder="configName">
-                            </div>
-
-                            
+                            </div>                            
                             <div class='row'>
                                 <div class="form-group mx-2">  
                                     <label for="lastBoot">Last boot</label>
@@ -245,7 +239,7 @@
       var sel = document.getElementById('user_select');
         for(let index in userList) 
         {
-            let selected = Tools.getSelectedOption(sel)
+            let selected = Tools.getDOMSelectedOption(sel)
             if(userList[index].email ==  selected.innerHTML)
             {
               console.log(userList[index])
@@ -259,7 +253,7 @@
       var sel = document.getElementById('device_select');
         for(let index in deviceList) 
         {
-            let selected = Tools.getSelectedOption(sel)
+            let selected = Tools.getDOMSelectedOption(sel)
             if(deviceList[index].id ==  selected.innerHTML)
             {
               console.log(deviceList[index])

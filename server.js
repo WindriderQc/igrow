@@ -66,3 +66,6 @@ console.log("Launching Mqtt")
 require('./serverMqtt').initMqtt()
 
 
+
+
+//  TODO:   si dataAPI réponds pas, redirect vers error page qui le mentionne
