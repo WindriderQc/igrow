@@ -69,3 +69,105 @@ require('./serverMqtt').initMqtt()
 
 
 //  TODO:   si dataAPI réponds pas, redirect vers error page qui le mentionne
+
+
+
+//  TODO:  integrate this sync and file check in nodetools
+/*
+var Concordance = require('./concordance');
+var wordcounts = new Concordance();
+
+
+var fs = require('fs');
+
+// What are all the files in the directory "data"?
+var files = fs.readdirSync('data');
+// Read all the files one by one
+for (var i = 0; i  < files.length; i++) {
+  var txt = fs.readFileSync('data/'+files[i], 'utf8');
+  wordcounts.process(txt);
+}
+
+
+
+// Route for sending all the concordance data
+app.get('/all', showAll);
+
+function showAll(req, res) {
+  // Send the entire concordance
+  res.send(wordcounts);
+}
+
+// Now a route for data about one word
+app.get('/search/:word', showOne);
+
+function showOne(req, res) {
+  var word = req.params['word'];
+
+  var reply = { };
+  var count = wordcounts.getCount(word);
+
+  // If it's not part of concordance send back a message
+  if (count === undefined) {
+    reply.status = 'word not found';
+  // Otherwise send back the word and count
+  } else {
+    reply.status = 'success';
+    reply.count = count;
+  }
+  // It's useful to send back the word to
+  // so the client can match the count with a given API call
+  reply.word = word;
+
+  res.send(reply);
+}
+
+
+var exists = fs.existsSync('additional.json');
+var additional;
+if (exists) {
+  var txt = fs.readFileSync('additional.json', 'utf8');
+  additional = JSON.parse(txt);
+} else {
+    additional = {};
+  }
+
+
+
+
+  // Assuming some new word and score is added
+additional['new word'] = 5;
+
+// Turn additional back into text
+var json = JSON.stringify(additional);
+
+// Write out the file
+fs.writeFile('additional.json', json, 'utf8', finished);
+
+// Callback for when file is finished
+function finished(err) {
+  console.log('Finished writing additional.json');
+}
+*/
+
+
+
+// The client can then access this data with loadJSON().
+/*
+// Getting all the data
+loadJSON('/all', gotAll);
+
+// Getting data for one word -- 'apple'
+loadJSON('/search/apple', gotOne);
+
+function gotAll(data) {
+// deal with all the data
+}
+
+function gotOne(data) {
+// deal with the results of the search for a single word
+}
+
+*/
+
+

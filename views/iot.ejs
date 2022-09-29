@@ -19,7 +19,7 @@
       <div class="row">
 
               
-         <% devices.forEach(sender =>{ %>   
+         <% devicesList.forEach(sender =>{ %>   
             <div class="row mt-2 col-sm-12">
 
                <%- include('partials/valueCard', {name: "ID ",                defaultValue: sender, units: "",     smWidth: 2, domID: sender+"id_id"      }); %>  
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
    console.log('Document ready  - JS  (without JQUERY)')
    console.log('Server is at: ' + Tools.getHostIP())
     
-   console.log('Devices from ejs: ', devicesList)
+   console.log('Devices from ejs: ', devicesList)            //   TODO : si ca marche...   pas besoin des JSON.stringify un peu plus bas.... :S?!?
  })
 /*
 $(()=>{
@@ -144,8 +144,8 @@ $(()=>{
 })
 */
 
-
-const devicesList = <%- JSON.stringify(devices) %>
+const registered = <%- JSON.stringify(regDevices) %>
+const devicesList = <%- JSON.stringify(devicesList) %>
 const mqttlogin = JSON.parse('<%- mqttinfo %>')
 let streamTextArray = []
 let latestData
@@ -201,19 +201,6 @@ function setSelected(espID)
     console.log("Setting selected: " + selectedDevice)
 }
 
-
-async function updateStatus()
-{       
-    const list =  devicesList
-    
-    list.forEach( async (esp) =>{      //  TODO:  détecte les disconnected.   mais juste si IoT.ejs est affiché...  doit etre dans serveur...
-    
-        const latest =  await fetch('/deviceLatest/' + esp)
-        const result = await latest.json()
-
-        document.getElementById(esp + '_li2').innerHTML = result.lastConnect.toFixed(4) 
-    })
-}
 
 
 async function setDevicesListOnList(dom_list, dom_status, _callback = null)
@@ -294,7 +281,7 @@ mqClient.on('message', (topic, payload) => {
     if((topic.indexOf("alive") >=0) || (topic.indexOf("data") >=0)) {
 
 
-    try {
+        try {
             let data = JSON.parse(payload)
             const sender = data.sender
             const timestamp = data.time
@@ -321,6 +308,21 @@ mqClient.on('message', (topic, payload) => {
         catch(err) {   console.log(payload.toString());  console.log(err)      } 
 
     }
+
+    if(topic.indexOf("disconnected") >=0) {
+
+        console.log('disconnected device!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', payload)
+        try {
+            let data = JSON.parse(payload)
+            const sender = data.id
+                     
+            document.getElementById(sender+'rss_id_value_id').innerHTML =  -100
+            document.getElementById(sender+'temp_id_value_id').innerHTML =  'xx'  
+
+        }
+        catch(err) {   console.log(payload.toString());  console.log(err)      } 
+
+    }
 })
 
 
@@ -328,11 +330,7 @@ mqClient.on('message', (topic, payload) => {
 setDevicesListOnList("devicesList", "statusList")
 setDevicesListOnSelect('devices_select')
 
-setInterval( updateStatus, 1000)
-
   
-
-
 
 </script>
 

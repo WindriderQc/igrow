@@ -3,7 +3,6 @@ const fetch = require('node-fetch')
 //const verify = require('./verifyToken')
 const moment = require('moment')
 
-const espConfigs = require('../esp32configs')
 const esp32 = require('../esp32')
 const getMqtt = require('../serverMqtt').getMqttClient
 const Tools = require('../nodeTools')
@@ -21,12 +20,31 @@ const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.MQTT_USER, pass
 ////   free routes
 
 router.get("/", async (req, res) => { 
+
+    const registered = await esp32.getRegistered()
+    esp32.validConnected()
+
     const response = await fetch(apiUrl + '/api/heartbeats/devices')
     const list = await response.json()
     console.log(list)
-    res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
+    res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data, regDevices: registered })
    // res.render('index',    { name: req.session.email }) 
 }) 
+
+
+router.get('/iot',  async (req, res) => {
+   
+    const registered = await esp32.getRegistered()
+    esp32.validConnected()
+    
+    const response = await fetch(apiUrl + '/api/heartbeats/devices')
+    const list = await response.json()
+    console.log(list)
+
+    res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data, regDevices: registered  })
+})
+
+
 
 router.get('/index',  async (req, res) => {  
     const response = await fetch(apiUrl + '/api/heartbeats/devices')
@@ -123,14 +141,6 @@ router.get('/settings',  async (req, res) => {
 })
 
 
-router.get('/iot',  async (req, res) => {
-  
-    const response = await fetch(apiUrl + '/api/heartbeats/devices')
-    const list = await response.json()
-    console.log(list)
-
-    res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
-})
 
 router.get('/database',  async (req, res) => {
     const response = await fetch(apiUrl+'/database/collectionList')
@@ -203,7 +213,7 @@ router.get('/deviceLatest/:esp',  async (req, res) => {
         }
         else {
 
-            let now =  new moment()
+           /* let now =  new moment()
             let stamp =  new moment(data.time).format('YYYY-MM-DD HH:mm:ss') 
             let duration = new moment.duration(now.diff(stamp)).asHours();
      
@@ -220,7 +230,7 @@ router.get('/deviceLatest/:esp',  async (req, res) => {
                     let mq = getMqtt()
                     mq.publish('esp32/alive/'+req.params.esp, dat)  //  server sends a mqtt post on behalf of esp to log a last wifi -100 signal in db.
                  }
-             }
+             }*/
 
             res.json(data)
         }

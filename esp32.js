@@ -4,7 +4,7 @@ const fetch = require('node-fetch'),
  //configs = require('./esp32configs')
  
 
-
+let _mqttClient
 let commBuff = []
 let registered = []
 let lastSavedPost = []
@@ -61,7 +61,7 @@ const esp32 = {
     register: async (deviceId) =>
     {
         let data
-        if(deviceId == 'ESP_38990') {
+        if(deviceId == 'ESP_38990') {    //  TODO:    put config in db....
 
             data = { type: 'esp32', id: deviceId, lastBoot: Date.now(), connected: true, zone: "atelier", 
                             config: [
@@ -132,8 +132,9 @@ const esp32 = {
             const r = await rawResponse.json() // const r = await rawResponse.text()
           
             if(r.status === 'success')  {  console.log('Registering: ', r.data.id)  } else console.log(r.status, r.message ) 
-            const resp = await esp32.getRegistered()
-           // console.log('getting registered:', resp)  //registered = await resp.json()
+            registered = await esp32.getRegistered()
+            console.log('updating registered:', registered.id)  //
+          
 
 
         }
@@ -148,6 +149,7 @@ const esp32 = {
             registered = r.data
            
             if(r.status === 'success')  {  console.log('Registered list: ', r.data)  } else console.log(r.status, r.message ) 
+            registered = esp32.validConnected()
             return registered
         }
         catch (err) { console.log(err) }
@@ -163,18 +165,34 @@ const esp32 = {
     validConnected: () => {
         registered.forEach((device) => {
             if(commBuff[device.id]) {
-
+                console.log(commBuff[device.id][commBuff[device.id].length -1])
                 const last = moment(commBuff[device.id][commBuff[device.id].length -1].time)
                 const seconds = esp32.timeSince(last, 'second') 
             // console.log(seconds)  
                 if(seconds >= DISCONNECT_TIMOUT) {
                     if (device.connected) console.log(device.id + ' disconnected!!')
-                    device.connected = false
+                    device.connected = false  //  device in commBuff but not posted since timeout
+                
+                    _mqttClient.publish('esp32/' + device.id + '/disconnected', JSON.stringify(device) )
+
+
                 } 
                 else device.connected = true
             }
+            else device.connected = false   //   device not in commBuff
         })
+        
+        return registered
     },
+
+    setConnectedValidation: (mqttClient, interval) => {
+
+        _mqttClient = mqttClient
+        setInterval(esp32.validConnected, interval)
+
+    },
+
+
 
     receiveMessage: async (data) =>
     {
@@ -192,10 +210,6 @@ const esp32 = {
                 lastSavedPost[data.sender] = data
                 await esp32.saveEspPost(data)
             }
-
-           registered.forEach((device) => {
-               if(device.id === data.sender) device.connected = true  //   TODO:  BAD si bcp de device, long loop a chaque msg
-           })
         }
         else {    
             //  First message received for this sender
@@ -217,7 +231,44 @@ const esp32 = {
 }
 
 
-setInterval(esp32.validConnected, 1000)
+
 
 module.exports = esp32
 //module.exports = {commBuff, registered}
+
+
+
+ // IO Configuration
+  // ESP32 HUZZAH32
+ 
+  // *** Note :
+  //           you can only read analog inputs on ADC #1 once WiFi has started *** //
+  //           PWM is possible on every GPIO pin
+  
+  //DigitalInput _A0( 26, "A0");  // A0 DAC2 ADC#2 not available when using wifi 
+  //DigitalInput _A1( 25, "A1");  // A1 DAC1 ADC#2 not available when using wifi
+/*   AnalogInput  _A2( 34, "GAZ");  // A2      ADC#1   Note it is not an output-capable pin! 
+  AnalogInput  _A3( 39, "LIGHT");  // A3      ADC#1   Note it is not an output-capable pin! 
+  AnalogInput  _A4( 36, "SOIL1");  // A4      ADC#1   Note it is not an output-capable pin! 
+  DigitalInput _A5(  4, "HEAT1");  // A5      ADC#2  TOUCH0 
+  DigitalInput _SCK( 5, "FAN1");  // SPI SCK
+  DigitalInput _MOSI( 18, "PUMP1");   // MOSI
+  DigitalInput _MISO( 19, "PUMP2");  // MISO
+  // GPIO 16 - RX
+  // GPIO 17 - TX
+  PullupInput _D21( 21, "BLUE"); 
+  // 23		            BMP280	            SDA
+  // 22		            BMP280	            SCL
+  DigitalInput _A6( 14, "DHT");  // A6 ADC#2
+  // 32		                                A7 can also be used to connect a 32 KHz crystal
+  DigitalInput _A8( 15, "MOVE"); // 15		A8 ADC#2
+  // 33		             	                A9
+  // 27		            	                A10 ADC#2
+  // 12	            	          	        A11 ADC#2 This pin has a pull-down resistor built into it, we recommend using it as an output only, or making sure that the pull-down is not affected during boot
+  DigitalOutput _A12( 13, "LED1");  // A12  ADC#2  Builtin LED
+  AnalogInput  _A13( 35, "VBAT");   // A13 This is general purpose input #35 and also an analog input, which is a resistor divider connected to the VBAT line   Voltage is divided by 2 so multiply the analogRead by 2
+  */
+
+
+
+

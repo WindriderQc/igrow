@@ -12,10 +12,12 @@ const mqtt = require('mqtt'),
 let mqtt_
 
 const mqttOptions = {
+    clientId: "mServer" + Math.random().toString(16),
     port: 1883,
     rejectUnauthorized: false,
     username: mqttUser,
-    password: mqttPass
+    password: mqttPass, 
+    clean_session: true   //  this option insure message are not stored and resend between devices deconnection
   }
 
 
@@ -26,16 +28,23 @@ function initMqtt()
     console.log('Attempting connection...')
 
     let mqttclient = mqtt.connect("mqtt://" + mqttServerIp, mqttOptions)
+
+
    
     mqttclient.on('error', (err) => {  console.log(err)  })
 
     mqttclient.on('connect', () => {  
         console.log('mqtt connected')
         mqttclient.subscribe('esp32')
-        mqttclient.subscribe('esp32/#') //  listening to all esp32 posts
+        mqttclient.subscribe('esp32/#') //  listening to all esp32 post
     })
     
     mqttclient.on('message', async (topic, message) => {
+
+
+       // consoleMsg(topic, message)
+
+
         if (topic == 'esp32/boot') //  message is an arrayBuffer and contains ESP_ID
         {
             const espID = message.toString()
@@ -65,6 +74,8 @@ function initMqtt()
     })
 
 
+    esp32.setConnectedValidation(mqttclient, 1000) //  check every 1s if devices are still connected
+
     mqtt_ = mqttclient
     return mqtt_
 }
@@ -78,7 +89,7 @@ function consoleMsg(topic, message)
         msg = JSON.parse(message)
         console.log('Topic: ', topic, '  msg: ', msg)
     }                                                                                            //  if not a json....   
-    catch (e) {  console.log('Topic: ', topic, '  Msg is not a JSON-ConvertingToString: ' + message.toString())  }   //  then convert buffer to string       
+    catch (e) {  console.log('Topic: ', topic, 'msg', message.toString(), '  --Msg is not a JSON-ConvertedToString')  }   //  then convert buffer to string       
 }
 
 
