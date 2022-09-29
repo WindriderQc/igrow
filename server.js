@@ -74,17 +74,17 @@ require('./serverMqtt').initMqtt()
 
 //  TODO:  integrate this sync and file check in nodetools
 /*
-var Concordance = require('./concordance');
+var Concordance = require('./FilesTools/concordance');
 var wordcounts = new Concordance();
 
 
 var fs = require('fs');
 
 // What are all the files in the directory "data"?
-var files = fs.readdirSync('data');
+var files = fs.readdirSync('FilesTools');
 // Read all the files one by one
 for (var i = 0; i  < files.length; i++) {
-  var txt = fs.readFileSync('data/'+files[i], 'utf8');
+  var txt = fs.readFileSync('FilesTools/'+files[i], 'utf8');
   wordcounts.process(txt);
 }
 
@@ -148,9 +148,9 @@ fs.writeFile('additional.json', json, 'utf8', finished);
 function finished(err) {
   console.log('Finished writing additional.json');
 }
+
+
 */
-
-
 
 // The client can then access this data with loadJSON().
 /*
