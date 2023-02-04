@@ -47,10 +47,14 @@ router.get('/iot',  async (req, res) => {
 
 
 router.get('/index',  async (req, res) => {  
+
+    const registered = await esp32.getRegistered()
+    esp32.validConnected()
+
     const response = await fetch(apiUrl + '/api/heartbeats/devices')
     const list = await response.json()
     console.log(list)
-    res.render('iot', { mqttinfo: mqttinfo, devices: list.data })
+    res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data,  regDevices: registered })
 })
 
 router.get("/iGrow", (req, res) => {  res.send('Hello')  })
