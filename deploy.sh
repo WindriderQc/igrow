@@ -18,5 +18,5 @@ cd iGrow
 npm install
 
 #npm run dev
-pm2 start server.js
+pm2 start igrow_serv.js
 pm2 save
