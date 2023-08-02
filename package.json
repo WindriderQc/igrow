@@ -2,10 +2,10 @@
   "name": "iGrow",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "igrow_serv.js",
   "scripts": {
-    "dev": "nodemon -e js,ejs server.js",
-    "start": "node server.js"
+    "dev": "nodemon -e js,ejs igrow_serv.js",
+    "start": "node igrow_serv.js"
   },
   "repository": {
     "type": "git",
