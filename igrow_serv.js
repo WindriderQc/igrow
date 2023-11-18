@@ -47,7 +47,7 @@ app
     .use(cors({    origin: '*',    optionsSuccessStatus: 200  }  ))
     .use(express.urlencoded({extended: true, limit: '10mb'}))  //  Must be before  'app.use(express.json)'    , 10Mb to allow image to be sent
     .use(express.json({limit:'10mb'})) // To parse the incoming requests with JSON payloads
-    //.use(rateLimit({ windowMs: 30 * 1000, max: 1 }))  //  prevents a user to crash server with too many request, altough with ESP32 sending heartbeat fast.. this cannot be set
+    //.use(rateLimit({ windowMs: 30 * 1000, max: 1 }))  //  prevents a user to crash server with too many request, altough with ESP32 sending heartbeat fast.. this cannot be set   2023-WTF...  esp are mqtt, should not cause issue
     .use(session(sessionOptions))
     .use(express.static(path.resolve(__dirname, 'public') )) 
     .use('/', require('./routes/main.routes.js')) 

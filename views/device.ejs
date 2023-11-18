@@ -44,7 +44,6 @@
 
 <div class="content-wrapper">
 <div class="container-fluid bg-3">
-
     <div class="row pl-1 mb-2">
         <div class="col-sm-12 px-1">
             <div class='card shadow'>
@@ -319,6 +318,7 @@ for (als in alarmList) {
 async function setDevicesListOnSelect( selectedOption = 0, onChangeCallback = null )
 {
     if(devicesList.length != 0) {
+        console.log('setting devices list', devicesList)
         for(let index in devicesList) {  // fill up select option array if devicesList is not empty
             selectDom.options[selectDom.options.length] = new Option(devicesList[index].id, index)
         }
@@ -354,6 +354,7 @@ $(() => {
 
     mqClient.subscribe("esp32/alive/#")
     mqClient.subscribe("esp32/alarmList")
+    
     setDevicesListOnSelect( 0, updateHiddenSelected)
 
     console.log(devicesList.length)

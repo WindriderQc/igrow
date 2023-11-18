@@ -25,7 +25,7 @@ function initMqtt()
 {
     if (mqtt_) {   console.warn("Already initialized and Trying to init MQTT again!");   return mqtt_    }
 
-    console.log('Attempting connection...')
+    console.log('Attempting MQTT connection...')
 
     let mqttclient = mqtt.connect("mqtt://" + mqttServerIp, mqttOptions)
 
@@ -34,7 +34,7 @@ function initMqtt()
     mqttclient.on('error', (err) => {  console.log(err)  })
 
     mqttclient.on('connect', () => {  
-        console.log('mqtt connected')
+        console.log('MQTT connected\n')
         mqttclient.subscribe('esp32')
         mqttclient.subscribe('esp32/#') //  listening to all esp32 post
     })

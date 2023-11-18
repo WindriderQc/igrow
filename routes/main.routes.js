@@ -12,7 +12,6 @@ Tools.readFile("greetings.txt")
 
 
 const apiUrl = process.env.DATA_API
-const iGrowUrl = process.env.IGROW_IP     //  TODO:  devrait juste check son IP, pas besoin de .env pour ca
 const mqttUrl = "ws://" + process.env.MQTT_SERVER_IP + ":9001" 
 const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
 
@@ -21,14 +20,21 @@ const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.MQTT_USER, pass
 
 router.get("/", async (req, res) => { 
 
+    console.log('Getting registered Esp32')
     const registered = await esp32.getRegistered()
-    esp32.validConnected()
+    if(registered == null) { 
+        console.log('Could not fetch devices list. Is DataAPI online?') 
+        res.render('index',    { name: req.session.email }) 
+    } else {
+        esp32.validConnected()
 
-    const response = await fetch(apiUrl + '/api/heartbeats/devices')
-    const list = await response.json()
-    console.log(list)
-    res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data, regDevices: registered })
-   // res.render('index',    { name: req.session.email }) 
+        const response = await fetch(apiUrl + '/api/heartbeats/devices')
+        const list = await response.json()
+        console.log(list)
+        res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data, regDevices: registered})
+        //res.render('index',    { name: req.session.email }) 
+    }
+    
 }) 
 
 
@@ -49,6 +55,7 @@ router.get('/iot',  async (req, res) => {
 router.get('/index',  async (req, res) => {  
 
     const registered = await esp32.getRegistered()
+    console.log('Getting registered Esp32 - index')
     esp32.validConnected()
 
     const response = await fetch(apiUrl + '/api/heartbeats/devices')
@@ -78,7 +85,7 @@ router.get('/device',  async (req, res) => {
     else {
         let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : registered[0].id  //  default on 1st device if none is saved in session
         selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
-        console.log(selectedDevice)
+        console.log('Fetching Alarms for: ' + selectedDevice)
     
         const response2 = await fetch(apiUrl + "/api/alarms")
         const alarmList = await response2.json()
@@ -87,9 +94,9 @@ router.get('/device',  async (req, res) => {
         const devices =  registered 
         let selDevice
         registered.forEach(device =>{ if(device.id == selectedDevice) {  selDevice = device }  })
-        console.log('Selected Device:', selDevice.config[0])
+        console.log('Selected Device:', selDevice.id, selDevice.config[0])
 
-        res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: iGrowUrl })
+        res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
     }
 
    

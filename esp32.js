@@ -152,7 +152,7 @@ const esp32 = {
             registered = esp32.validConnected()
             return registered
         }
-        catch (err) { console.log(err) }
+        catch (err) { console.log('Error fetching registered. Is Data API online?'); }
     },
 
     
@@ -181,7 +181,7 @@ const esp32 = {
             }
             else device.connected = false   //   device not in commBuff
         })
-        
+        if(registered == null) {console.log('correcting registered'); registered = [];}
         return registered
     },
 
