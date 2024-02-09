@@ -19,14 +19,14 @@
       <div class="row">
 
               
-         <% devicesList.forEach(sender =>{ %>   
+         <% regDevices.forEach(sender =>{ %>   
             <div class="row mt-2 col-sm-12">
 
-               <%- include('partials/valueCard', {name: "ID ",                defaultValue: sender, units: "",     smWidth: 2, domID: sender+"id_id"      }); %>  
-               <%- include('partials/graph/rssGauge',  { name: "Wifi",        defaultValue: -100,   units: " dBm", smWidth: 3, domID: sender+"rss_id",  divHeight: "120px" }); %>
-               <%- include('partials/valueCard', { name: "CPU temperature ",  defaultValue: 0,      units: "°C",   smWidth: 2, domID: sender+"temp_id"    }); %>    
-               <%- include('partials/valueCard', { name: "Battery",           defaultValue: 0,      units: "v",    smWidth: 2, domID: sender+"batt_id"    }); %>  
-               <%- include('partials/valueCard', { name: "Humidity",          defaultValue: 0,      units: "%",    smWidth: 2, domID: sender+"humid_id"   }); %>  
+               <%- include('partials/valueCard', {name: "ID ",                defaultValue: sender.id, units: "",     smWidth: 2, domID: sender.id+"id_id"      }); %>  
+               <%- include('partials/graph/rssGauge',  { name: "Wifi",        defaultValue: -100,   units: " dBm", smWidth: 3, domID: sender.id+"rss_id",  divHeight: "120px" }); %>
+               <%- include('partials/valueCard', { name: "CPU temperature ",  defaultValue: 0,      units: "°C",   smWidth: 2, domID: sender.id+"temp_id"    }); %>    
+               <%- include('partials/valueCard', { name: "Battery",           defaultValue: 0,      units: "v",    smWidth: 2, domID: sender.id+"batt_id"    }); %>  
+               <%- include('partials/valueCard', { name: "Humidity",          defaultValue: 0,      units: "%",    smWidth: 2, domID: sender.id+"humid_id"   }); %>  
    
             </div>      
          <% }) %>
@@ -131,21 +131,8 @@ Esp32 are listening to :</br>
         
 <script>
    
-
-document.addEventListener("DOMContentLoaded", () => {
-   console.log('Document ready  - JS  (without JQUERY)')
-   console.log('Server is at: ' + Tools.getHostIP())
-    
-   console.log('Devices from ejs: ', devicesList)            //   TODO : si ca marche...   pas besoin des JSON.stringify un peu plus bas.... :S?!?
- })
-/*
-$(()=>{
-   console.log('Document ready  - JQUERY')
-})
-*/
-
 const registered = <%- JSON.stringify(regDevices) %>
-const devicesList = <%- JSON.stringify(devicesList) %>
+
 const mqttlogin = JSON.parse('<%- mqttinfo %>')
 let streamTextArray = []
 let latestData
@@ -154,6 +141,22 @@ let selectedDevice = ""
 let selectDom = ""
 let changeCallback = null
      
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    console.log('Document ready  - JS  (without JQUERY)')
+    console.log('Server is at: ' + Tools.getHostIP())
+    console.log('RegDevices from ejs: ', registered)  
+
+    setDevicesListOnList("devicesList", "statusList")
+    setDevicesListOnSelect('devices_select')
+
+ })
+/*
+$(()=>{
+   console.log('Document ready  - JQUERY')
+})
+*/
 
 
 function mqttPost() {    mqClient.publish(document.getElementById('topic').value, document.getElementById('msg').value)     }
@@ -165,11 +168,11 @@ async function setDevicesListOnSelect(html_dom, selectedOption = 0, onChangeCall
     if(onChangeCallback) changeCallback = onChangeCallback 
 
 
-    if(devicesList.length != 0) {
+    if(registered.length != 0) {
         let select = document.getElementById(selectDom)
 
-        for(let index in devicesList) {
-            select.options[select.options.length] = new Option(devicesList[index], index)
+        for(let index in registered) {
+            select.options[select.options.length] = new Option(registered[index].id, index)
         }
 
         select.options[selectedOption].selected = "true"
@@ -193,7 +196,7 @@ function updateSelected()
 function setSelected(espID)
 { 
     let select = document.getElementById(selectDom)
-    let s = deviceList.indexOf(espID)
+    let s = registered.indexOf(espID)
     
     select.options[s].selected = "true"
     
@@ -207,7 +210,7 @@ async function setDevicesListOnList(dom_list, dom_status, _callback = null)
 {
     domList = dom_list
             
-    let items = devicesList
+    let items = registered
     let sender_ul = document.createElement('ul')
     let status_ul = document.createElement('ul')
     
@@ -217,20 +220,24 @@ async function setDevicesListOnList(dom_list, dom_status, _callback = null)
     
     items.forEach( async (esp) =>{
 
-        const latest =  await fetch('/deviceLatest/' + esp)
-        const result = await latest.json()
-        console.log(result)
+        const latest =  await fetch('/deviceLatest/' + esp.id)
+        const lastpost = await latest.json()
+        console.log("lastpost:", lastpost)
             
 
         let li = document.createElement('li')
-        li.id = esp + '_li'
+        li.id = esp.id + '_li'
         sender_ul.appendChild(li)
-        li.innerHTML += esp
+        li.innerHTML += esp.id
     
         let li2 = document.createElement('li')
-        li2.id = esp + '_li2'
+        li2.id = esp.id + '_li2'
         status_ul.appendChild(li2)
-        li2.innerHTML = "OFF" //result //"status"
+        try {
+            li2.innerHTML = lastpost.data.time
+        }catch(err) {
+            li2.innerHTML = "No post in database"
+        }
     })      
 }
 
@@ -327,8 +334,6 @@ mqClient.on('message', (topic, payload) => {
 
 
 
-setDevicesListOnList("devicesList", "statusList")
-setDevicesListOnSelect('devices_select')
 
   
 

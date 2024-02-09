@@ -21,8 +21,8 @@
     <script src="https://kit.fontawesome.com/195e82b473.js" crossorigin="anonymous"></script>
     
     <!-- Custom styles for this template-->
-    <link rel="stylesheet"   type="text/css"  href="css/sb-admin.css" >
-        <link rel="stylesheet" href="/css/serverClientStyles.css">
+    <link rel="stylesheet" type="text/css"  href="css/sb-admin.css" >
+    <link rel="stylesheet" href="/css/serverClientStyles.css">
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
@@ -41,8 +41,6 @@
 <div class="container-fluid bg-3">  
          
         
-
-
     <header>
         <h1 class="title">💻 Server stats 💻</h1>
     </header>
@@ -81,7 +79,7 @@ const errorElement = document.querySelector('.error-message')
 const loadingElement = document.querySelector('.loading')
 const bootsElement = document.querySelector('.boots')
 const loadMoreElement = document.querySelector('#loadMore')
-const DATA_API =  'http://192.168.0.33:3001'   // TODO: recevoir du server ejs
+const DATA_API =  'http://192.168.1.33:3003'   // TODO: recevoir du server ejs
 
 let skip = 0;
 let limit = 30;    //   TODO:  si le limit est plus petit que window et y apas de scroll....   le scroll event launch pas
@@ -142,21 +140,19 @@ class DBSelecter {
 
 
 
-let dbList = JSON.parse('<%- collectionList %>')
-let colList = []
+let colList = JSON.parse('<%- collectionList %>')
+let selectedCollection = colList[0].name
+console.log("CollectionList:", colList)
 
-console.log(dbList)
-
-for(let db of dbList) {
-    colList.push(db.name)
+let nameList = []
+for(let col of colList) {
+    nameList.push(col.name)
 }
 
-let selectedDb = colList[0]  // select first collection of array by default
-console.log({colList, selectedDb})
 
 
-let dbSelect = new DBSelecter(colList, selectedDb,  "collection_select")
-listAll(selectedDb, true)
+let dbSelect = new DBSelecter(nameList, selectedCollection,  "collection_select", sendRequest)
+listAll(selectedCollection, true)
 
 
 //  Button activated update - collection list display upon query params in gui
@@ -187,7 +183,7 @@ function loadMore() {
 async function listAll( selectedCollection, reset = true) {
     loading = true;
     if (reset) {
-        console.log('reset')
+        console.log('reset - droping new list')
         bootsElement.innerHTML = ''
         skip = 0;
         finished = false;
@@ -200,7 +196,7 @@ async function listAll( selectedCollection, reset = true) {
         sort: document.getElementById('sort_id').value, 
         collection: selectedCollection ? selectedCollection : ""
     }
-    const url = `${DATA_API}/database/list?skip=${params.skip}&limit=${params.limit}&sort=${params.sort}&collection=${params.collection}`
+    const url = `${DATA_API}/${params.collection}?skip=${params.skip}&limit=${params.limit}&sort=${params.sort}`
     console.log(url)
 
     const response = await fetch(url)
@@ -228,7 +224,7 @@ async function listAll( selectedCollection, reset = true) {
             })
 
         loadingElement.style.display = 'none'
-        console.log(result.meta.has_more ? "has more" : "done")
+        console.log(result.meta.has_more ? "Droplist has more" : "Droplist is done")
         if (!result.meta.has_more) {
             loadMoreElement.style.visibility = 'hidden'
             finished = true

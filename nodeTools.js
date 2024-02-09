@@ -55,7 +55,6 @@ exports.isExisting = async (path) => {
 }
 
 
-
 exports.isObjEmpty =  (obj) => {
   for(let i in obj) return false
   return true
@@ -63,17 +62,14 @@ exports.isObjEmpty =  (obj) => {
 
 
 exports.TimeDiff = (startTime, endTime, format) => {
-
   startTime = moment(startTime, 'YYYY-MM-DD HH:mm:ss');
   endTime = moment(endTime, 'YYYY-MM-DD HH:mm:ss');
   return endTime.diff(startTime, format);
 }
 
 
-exports.cliError = (err) => {
-  console.error(`ERROR(${err.code}): ${err.message}`)
-}
+exports.cliError = (err) => {  console.error(`ERROR(${err.code}): ${err.message}`)  }
 
-exports.cliWarning = (err) => {
-  console.warn(`ERROR(${err.code}): ${err.message}`)
-}
+exports.cliWarning = (err) => {  console.warn(`ERROR(${err.code}): ${err.message}`)  }
+
+exports.cliMsg = (msg) => {    console.log(msg)  }

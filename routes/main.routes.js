@@ -10,7 +10,6 @@ Tools.readFile("greetings.txt")
 
 
 
-
 const apiUrl = process.env.DATA_API
 const mqttUrl = "ws://" + process.env.MQTT_SERVER_IP + ":9001" 
 const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
@@ -28,10 +27,11 @@ router.get("/", async (req, res) => {
     } else {
         esp32.validConnected()
 
-        const response = await fetch(apiUrl + '/api/heartbeats/devices')
+        const response = await fetch(apiUrl + '/devices')
         const list = await response.json()
-        console.log(list)
-        res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data, regDevices: registered})
+
+        console.log("Registered users:", list)
+        res.render('iot', { mqttinfo: mqttinfo, regDevices: registered})
         //res.render('index',    { name: req.session.email }) 
     }
     
@@ -43,13 +43,12 @@ router.get('/iot',  async (req, res) => {
     const registered = await esp32.getRegistered()
     esp32.validConnected()
     
-    const response = await fetch(apiUrl + '/api/heartbeats/devices')
+    const response = await fetch(apiUrl + '/devices')
     const list = await response.json()
     console.log(list)
 
-    res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data, regDevices: registered  })
+    res.render('iot', { mqttinfo: mqttinfo, regDevices: registered  })
 })
-
 
 
 router.get('/index',  async (req, res) => {  
@@ -58,10 +57,10 @@ router.get('/index',  async (req, res) => {
     console.log('Getting registered Esp32 - index')
     esp32.validConnected()
 
-    const response = await fetch(apiUrl + '/api/heartbeats/devices')
+    const response = await fetch(apiUrl + '/devices')
     const list = await response.json()
     console.log(list)
-    res.render('iot', { mqttinfo: mqttinfo, devicesList: list.data,  regDevices: registered })
+    res.render('iot', { mqttinfo: mqttinfo, regDevices: registered })
 })
 
 router.get("/iGrow", (req, res) => {  res.send('Hello')  })
@@ -75,7 +74,6 @@ router.get('/cams',  (req, res) => {  res.render('cams')  })
 
 router.get('/device',  async (req, res) => {
    
-    //const url = `${apiUrl}/database/list?skip=${params.skip}&limit=${params.limit}&sort=${params.sort}&collection=${params.collection}`
     const registered = await esp32.getRegistered()
 
     if(!registered.length) {
@@ -87,7 +85,7 @@ router.get('/device',  async (req, res) => {
         selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
         console.log('Fetching Alarms for: ' + selectedDevice)
     
-        const response2 = await fetch(apiUrl + "/api/alarms")
+        const response2 = await fetch(apiUrl + "/alarms")
         const alarmList = await response2.json()
 
     
@@ -106,7 +104,7 @@ router.get('/device',  async (req, res) => {
 router.get('/graphs',  async (req, res) => { 
 
 
-    const response = await fetch(apiUrl + "/api/devices")
+    const response = await fetch(apiUrl + "/devices")
     const result = await response.json()
     const list = result.data
     let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : list[0].id  // req.query.deviceID ? req.query.deviceID : list[0]  
@@ -135,15 +133,15 @@ router.post('/selectDevice', async (req, res) => {
 
 router.get('/settings',  async (req, res) => {
 
-    const response = await fetch(apiUrl + "/api/users")
+    const response = await fetch(apiUrl + "/users")
     const result = await response.json()
     const users = result.data
 
-    const response2 = await fetch(apiUrl + "/api/devices")
+    const response2 = await fetch(apiUrl + "/devices")
     const result2 = await response2.json()
     const devices = result2.data
 
-    const response3 = await fetch(apiUrl + "/api/alarms")
+    const response3 = await fetch(apiUrl + "/alarms")
     const result3 = await response3.json()
     const alarms = result3.data
 
@@ -154,7 +152,7 @@ router.get('/settings',  async (req, res) => {
 
 
 router.get('/database',  async (req, res) => {
-    const response = await fetch(apiUrl+'/database/collectionList')
+    const response = await fetch(apiUrl+'/db/collectionList')
     const list = await response.json()
     console.log('Sending collection list to client: ', list)
     res.render('database', {collectionList: JSON.stringify(list) })
@@ -213,14 +211,14 @@ router.get('/deviceLatest/:esp',  async (req, res) => {
     }
 
     try {
-        const response = await fetch(apiUrl + "/api/heartbeats/deviceLatest/" + req.params.esp, option)
+        const response = await fetch(apiUrl + "/heartbeats/senderLatest/" + req.params.esp, option)
         const respData = await response.json()
         const data = respData.data[0]
         //console.log(data)
 
         if (!data) {
-            const message = "Could not get data";
-            return res.status(400).send(message);
+            res.json({ status: "error", message: 'Could not get data, no latest post', data: null  })
+            //return res.status(400).send(message);
         }
         else {
 
@@ -243,7 +241,7 @@ router.get('/deviceLatest/:esp',  async (req, res) => {
                  }
              }*/
 
-            res.json(data)
+            res.json({ status: "success", message: "Latest post retreived", data: data  })
         }
     }
     catch (err) {
@@ -269,7 +267,7 @@ router.get('/data/:options',  async (req, res) => {
     let option = { method: 'GET', headers: { 'auth-token': req.session.userToken  }    }
 
     try {
-        const response = await fetch(apiUrl + "/api/heartbeats/data/" + samplingRatio + "," + espID + ',' + dateFrom, option)
+        const response = await fetch(apiUrl + "/heartbeats/data/" + samplingRatio + "," + espID + ',' + dateFrom, option)
         const respData = await response.json()
         const data = respData.data
         res.json(data)
@@ -319,7 +317,7 @@ router.route('/alarms/setAlarm').post(async (req, res) => {
         body: JSON.stringify(als)
     }
     try {
-        const response = await fetch(process.env.DATA_API + "/api/alarms", option)
+        const response = await fetch(process.env.DATA_API + "/alarms", option)
         const data = await response.json()
      
         if (nodeTools.isObjEmpty(data)) {

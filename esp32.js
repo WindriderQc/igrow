@@ -1,9 +1,8 @@
 const fetch = require('node-fetch'),
  moment = require('moment'),
- apiUrl = process.env.DATA_API + '/api'
+ apiUrl = process.env.DATA_API
  //configs = require('./esp32configs')
  
-
 let _mqttClient
 let commBuff = []
 let registered = []
@@ -152,7 +151,7 @@ const esp32 = {
             registered = esp32.validConnected()
             return registered
         }
-        catch (err) { console.log('Error fetching registered. Is Data API online?'); }
+        catch (err) { console.log('Error fetching registered. Is Data API online?', err); }
     },
 
     
