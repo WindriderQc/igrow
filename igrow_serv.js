@@ -1,6 +1,6 @@
 require('dotenv').config();
 const IN_PROD = process.env.NODE_ENV === 'production'  
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 3002
 
 const express = require('express'),
 session = require('express-session'),
@@ -16,7 +16,8 @@ app.set('view engine', 'ejs')
 
 
 const mongoStore = new MongoDBStore({  
-    uri: process.env.MONGO_URL,  
+    //uri: "mongodb+srv://" + process.env.USER + ":" + process.env.PASS + "@cluster0-b2xaf.mongodb.net/test?retryWrites=true&w=majority",  //  Cloud Database  //      Cloud DB is used for sessions since local DB only accept request from local source (127.0.0.1)
+    uri: "mongodb://" + process.env.USER + ":" + process.env.PASS + "@" + process.env.DATA_API_IP + ":" + process.env.MONGO_PORT + "/iGrow?retryWrites=true&w=majority&authMechanism=DEFAULT&authSource=admin" ,    //  Local Database   
     collection: 'mySessions', 
     connectionOptions: {
         useNewUrlParser: true,

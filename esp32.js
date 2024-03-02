@@ -1,6 +1,6 @@
 const fetch = require('node-fetch'),
  moment = require('moment'),
- apiUrl = process.env.DATA_API
+ apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
  //configs = require('./esp32configs')
  
 let _mqttClient

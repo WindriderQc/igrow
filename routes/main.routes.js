@@ -9,10 +9,9 @@ const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
 
 
-
-const apiUrl = process.env.DATA_API
-const mqttUrl = "ws://" + process.env.MQTT_SERVER_IP + ":9001" 
-const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.MQTT_USER, pass: process.env.MQTT_PASS })
+const apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
+const mqttUrl = "ws://" + process.env.DATA_API_IP + ":9001" 
+const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.USER, pass: process.env.PASS })
 
 
 ////   free routes
@@ -74,28 +73,35 @@ router.get('/cams',  (req, res) => {  res.render('cams')  })
 
 router.get('/device',  async (req, res) => {
    
-    const registered = await esp32.getRegistered()
-
-    if(!registered.length) {
-        console.log('No devices registered yet!!!!! Cannot display device page, redirecting....')
-        res.redirect('/iot')
-    }
-    else {
-        let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : registered[0].id  //  default on 1st device if none is saved in session
-        selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
-        console.log('Fetching Alarms for: ' + selectedDevice)
+    try{
+        const registered = await esp32.getRegistered()  
+        if(!registered.length) {
+            console.log('No devices registered yet!!!!! Cannot display device page, redirecting....')
+            res.redirect('/iot')
+        } else {
+            let selectedDevice = req.session.selectedDevice ? req.session.selectedDevice : registered[0].id  //  default on 1st device if none is saved in session
+            selectedDevice = req.query.deviceID ? req.query.deviceID : selectedDevice // selection from query superceed saved session
+            console.log('Fetching Alarms for: ' + selectedDevice)
+        
+            const response2 = await fetch(apiUrl + "/alarms")
+            const alarmList = await response2.json()
     
-        const response2 = await fetch(apiUrl + "/alarms")
-        const alarmList = await response2.json()
-
+        
+            const devices =  registered 
+            let selDevice
+            registered.forEach(device =>{ if(device.id == selectedDevice) {  selDevice = device }  })
+            console.log('Selected Device:', selDevice.id, selDevice.config[0])
     
-        const devices =  registered 
-        let selDevice
-        registered.forEach(device =>{ if(device.id == selectedDevice) {  selDevice = device }  })
-        console.log('Selected Device:', selDevice.id, selDevice.config[0])
+            res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
+        }
 
-        res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
+        
+    } catch(err) {
+        res.render('error', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
     }
+
+   
+   
 
    
 })
@@ -294,7 +300,6 @@ router.post('/set_io', (req, res) => {
 
 
 
-let nodeTools = require('../nodeTools')
 
 
 router.route('/alarms/setAlarm').post(async (req, res) => { 
@@ -317,10 +322,10 @@ router.route('/alarms/setAlarm').post(async (req, res) => {
         body: JSON.stringify(als)
     }
     try {
-        const response = await fetch(process.env.DATA_API + "/alarms", option)
+        const response = await fetch( apiUrl + "/alarms", option)
         const data = await response.json()
      
-        if (nodeTools.isObjEmpty(data)) {
+        if (Tools.isObjEmpty(data)) {
             const message = "Error saving alarm";
             console.log(message)
             //return res.status(400).send(message);

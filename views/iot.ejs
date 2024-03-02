@@ -313,7 +313,6 @@ mqClient.on('message', (topic, payload) => {
 
         }
         catch(err) {   console.log(payload.toString());  console.log(err)      } 
-
     }
 
     if(topic.indexOf("disconnected") >=0) {

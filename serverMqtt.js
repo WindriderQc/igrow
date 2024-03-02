@@ -4,9 +4,9 @@ const mqtt = require('mqtt'),
  assert = require('assert'),
  //fetch = require('node-fetch'),
  esp32 = require('./esp32'),
- mqttServerIp = process.env.MQTT_SERVER_IP,
- mqttUser = process.env.MQTT_USER,
- mqttPass = process.env.MQTT_PASS
+ mqttServerIp = process.env.DATA_API_IP,
+ mqttUser = process.env.USER,
+ mqttPass = process.env.PASS
 
 
 let mqtt_

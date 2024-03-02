@@ -1,8 +1,8 @@
+ip a
+
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash -
 sudo apt install -y nodejs
 node -v
-
-ip a
 
 
 mkdir servers
