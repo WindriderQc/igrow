@@ -5,6 +5,8 @@ const Tools = {
     cliError: (err) => {          console.error(`ERROR(${err.code}): ${err.message}`)        },
 
     cliWarning: (warn) => {       console.warn(`WARNING(${warn.code}): ${warn.message}`)     },
+    
+    cliMsg: (msg) => {            console.log(msg)                                           },
 
 
     sleep: (ms) =>{        return new Promise(resolve => setTimeout(resolve, ms))        },
@@ -13,19 +15,18 @@ const Tools = {
     getHostIP: ()=> {       return window.location.hostname                              },  //let serv = 'https://' + window.location.hostname    TODO: https
          
 
-    randomScalingFactor: () => {        return Math.round(Math.random() * 100)           },
+    randomScalingFactor: () => {        return Math.round(Math.random() * 100)           },  // provide a random number from 0 to 100
 
-    random_hex_color_code: () => {        return "#" + Math.floor(Math.random()*16777215).toString(16)    },    
+    random_hex_color_code: () => {        return "#" + Math.floor(Math.random()*16777215).toString(16)    },    // provide a 16 digits hex value starting with #
 
-    randomArray4: () => {        return [ Math.round(Math.random() * 100), Math.round(Math.random() * 100), Math.round(Math.random() * 100), Math.round(Math.random() * 100) ]    },
+    randomArray4: () => {        return [ Math.round(Math.random() * 100), Math.round(Math.random() * 100), Math.round(Math.random() * 100), Math.round(Math.random() * 100) ]    },     // provide a vector4 array with values from 0 to 100
 
     
-    scale: (num, in_min, in_max, out_min, out_max) =>{         
-        return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-    },
+    scale: (num, in_min, in_max, out_min, out_max) =>{     return (num - in_min) * (out_max - out_min) / (in_max - in_min) + out_min    }, //  return the value scaled between min and max
 
 
     fillForm: (formId, data) => {
+
         const { elements } = document.getElementById(formId)
 
         for (const [ key, value ] of Object.entries(data) ) 
@@ -34,6 +35,26 @@ const Tools = {
             field && (field.value = value)
         }
     },
+
+
+    setDevicesListOnSelect: async (domElm, valuelist, selectedValue = "" ) => {   // sets values on a Select HTML element
+
+        let selectedOption = 0
+    
+        if(valuelist.length != 0) {
+            console.log('setting devices list on htmlSelect', valuelist )
+            console.log('selected: ', selectedValue )
+            for(let index in valuelist) {  // fill up select option array if devicesList is not empty
+                domElm.options[domElm.options.length] = new Option(valuelist[index].id, index)
+                if(valuelist[index].id === selectedValue) selectedOption = index
+            }
+            
+            domElm.options[selectedOption].selected = "true"  //  set default selection 
+       
+        }  
+        else  console.log('no value in provided array')   
+    },
+
   
      
     formatTime : (timestamp) => {

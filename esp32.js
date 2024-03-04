@@ -11,6 +11,15 @@ const DB_SAVE_RATIO = 60
 const BUFF_MAXSIZE = 125
 const DISCONNECT_TIMOUT = 3
 
+/*
+
+{  status: 'Data server connected to iGrow database',  
+                message: 'Welcome to SBQC Data API  💻 🖱️ 🦾   Try 192.168.1.33:3003/.....', 
+                data: { APIs: "db, alarms, contact, devices, heartbeat, users" }   
+            }
+
+            */
+
 
 const esp32 = {
 
@@ -148,7 +157,7 @@ const esp32 = {
             registered = r.data
            
             if(r.status === 'success')  {  console.log('Registered list: ', r.data)  } else console.log(r.status, r.message ) 
-            registered = esp32.validConnected()
+            registered = esp32.validConnected()  // make sure connections are known if its called before first auto actualization of connected
             return registered
         }
         catch (err) { console.log('Error fetching registered. Is Data API online?', err); }
@@ -173,7 +182,6 @@ const esp32 = {
                     device.connected = false  //  device in commBuff but not posted since timeout
                 
                     _mqttClient.publish('esp32/' + device.id + '/disconnected', JSON.stringify(device) )
-
 
                 } 
                 else device.connected = true

@@ -11,22 +11,22 @@
 </head>
 
 <style>
-    #espList {
+    #espConfigList {
       font-family: Arial, Helvetica, sans-serif;
       border-collapse: collapse;
       width: 100%;
     }
     
-    #espList td, #espList th {
+    #espConfigList td, #espConfigList th {
       border: 1px solid #ddd;
       padding: 8px;
     }
     
-    #espList tr:nth-child(even){background-color: #f2f2f2;}
+    #espConfigList tr:nth-child(even){background-color: #f2f2f2;}
     
-    #espList tr:hover {background-color: #ddd;}
+    #espConfigList tr:hover {background-color: #ddd;}
     
-    #espList th {
+    #espConfigList th {
       padding-top: 12px;
       padding-bottom: 12px;
       text-align: left;
@@ -198,7 +198,7 @@
                             <div class="card-body">
                                 <pre><div class='form-text' id='configText'>io : io</div></pre>
                                 
-                                <div id="espList"></div>
+                                <div id="espConfigList"></div>
                             </div>
                         </div>
                     </div>
@@ -252,19 +252,18 @@ function json2table(data, divId) {
 
  
 
-const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why
+const mqttlogin = JSON.parse('<%- mqttinfo %>')  // TODO:  valider si ca doit etre uniformisé..  parse vs stringify, ou comment why 
 const devicesList =  <%- JSON.stringify(devices) %>
-const devices =  <%- JSON.stringify(devices) %>
+const device = <%- JSON.stringify(device) %>  // selected device object
+let selectedDevice = device.id              // selected device name
 const alarmList =  <%- JSON.stringify(alarmList) %>
 const apiUrl =  <%- JSON.stringify(apiUrl) %>
 const iGrowUrl =  <%- JSON.stringify(iGrowUrl) %>
 
-const device = <%- JSON.stringify(device) %>
-console.log('Device ', device)
+console.log('Selected Device ', device)
 
-json2table(device.config, 'espList', 'configTable')
+json2table(device.config, 'espConfigList', 'configTable')
 
-let selectedDevice = ""
 let selectDom = document.getElementById('devices_select')
 let changeCallback = null
 
@@ -315,31 +314,6 @@ for (als in alarmList) {
 
 
 
-async function setDevicesListOnSelect( selectedOption = 0, onChangeCallback = null )
-{
-    if(devicesList.length != 0) {
-        console.log('setting devices list', devicesList)
-        for(let index in devicesList) {  // fill up select option array if devicesList is not empty
-            selectDom.options[selectDom.options.length] = new Option(devicesList[index].id, index)
-        }
-        
-        selectDom.options[selectedOption].selected = "true"  //  set default selection
-        
-        selectedDevice = selectDom.options[selectedOption].text
-        document.getElementById('device_id').value = selectedDevice 
-        
-        if(onChangeCallback) { changeCallback = onChangeCallback;  } 
-    }  
-    else  console.log('no ESP found in DB')   
-}
-
-
-
-
-
-function updateHiddenSelected() {
-    document.getElementById('device_id').value = selectedDevice
-}
 
 $(() => {
 
@@ -355,19 +329,11 @@ $(() => {
     mqClient.subscribe("esp32/alive/#")
     mqClient.subscribe("esp32/alarmList")
     
-    setDevicesListOnSelect( 0, updateHiddenSelected)
+    Tools.setDevicesListOnSelect(document.getElementById('devices_select'), devicesList, selectedDevice)
+    document.getElementById('device_id').value = selectedDevice
 
     console.log(devicesList.length)
 
-    let index = -1
-    for(let i = 0; i < devicesList.length; i++) {
-        console.log(devicesList[i].id)
-        if(devicesList[i].id == '<%- selected %>')
-            index = i
-    }
-   
-    selectDom.options[index].selected = "true"
-    selectedDevice = selectDom.options[selectDom.selectedIndex].text
     console.log("Setting selected: " + selectedDevice)
 
     mqClient.on("message", (topic, payload) => {
@@ -389,7 +355,7 @@ function getStartStopValue()
     console.log(tStop)
     document.getElementById("tStop").value = tStop;
 }
-
+/*
 function updateSelected()
 { 
     selectedDevice = selectDom.options[selectDom.selectedIndex].text
@@ -400,12 +366,9 @@ function updateSelected()
     document.cookie.selectedDevice = selectedDevice
   
 
-
-
-
     if(changeCallback) changeCallback()  
 }
-
+*/
 function onSelectChange() {
 
     selectedDevice = selectDom.options[selectDom.selectedIndex].text

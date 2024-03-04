@@ -24,23 +24,15 @@ router.get("/", async (req, res) => {
         console.log('Could not fetch devices list. Is DataAPI online?') 
         res.render('index',    { name: req.session.email }) 
     } else {
-        esp32.validConnected()
-
-        const response = await fetch(apiUrl + '/devices')
-        const list = await response.json()
-
-        console.log("Registered users:", list)
+        console.log("Registered users:", registered)
         res.render('iot', { mqttinfo: mqttinfo, regDevices: registered})
-        //res.render('index',    { name: req.session.email }) 
-    }
-    
+    } 
 }) 
 
 
 router.get('/iot',  async (req, res) => {
    
     const registered = await esp32.getRegistered()
-    esp32.validConnected()
     
     const response = await fetch(apiUrl + '/devices')
     const list = await response.json()
@@ -53,12 +45,6 @@ router.get('/iot',  async (req, res) => {
 router.get('/index',  async (req, res) => {  
 
     const registered = await esp32.getRegistered()
-    console.log('Getting registered Esp32 - index')
-    esp32.validConnected()
-
-    const response = await fetch(apiUrl + '/devices')
-    const list = await response.json()
-    console.log(list)
     res.render('iot', { mqttinfo: mqttinfo, regDevices: registered })
 })
 
@@ -67,9 +53,6 @@ router.get("/iGrow", (req, res) => {  res.send('Hello')  })
 router.get('/empty', (req, res) => {  res.render('empty') })
 
 router.get('/cams',  (req, res) => {  res.render('cams')  })
-
-
-
 
 router.get('/device',  async (req, res) => {
    
@@ -86,13 +69,11 @@ router.get('/device',  async (req, res) => {
             const response2 = await fetch(apiUrl + "/alarms")
             const alarmList = await response2.json()
     
-        
-            const devices =  registered 
             let selDevice
             registered.forEach(device =>{ if(device.id == selectedDevice) {  selDevice = device }  })
             console.log('Selected Device:', selDevice.id, selDevice.config[0])
     
-            res.render('device', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
+            res.render('device', { mqttinfo: mqttinfo, devices: registered, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
         }
 
         
