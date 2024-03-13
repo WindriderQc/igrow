@@ -10,7 +10,7 @@ Tools.readFile("greetings.txt")
 
 
 const apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
-const mqttUrl = "ws://" + process.env.DATA_API_IP + ":9001" 
+const mqttUrl = "ws://" + process.env.DATA_API_IP + ":" + process.env.MQTT_PORT 
 const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.USER, pass: process.env.PASS })
 
 
@@ -161,7 +161,7 @@ router.get('/weather/:latlon', async (req, res) => {
     const lat = latlon[0];
     const lon = latlon[1];
     console.log(lat, lon);
-    const api_key = process.env.API_KEY;
+    const api_key = process.env.WEATHER_API_KEY;
     console.log(api_key)
     const weather_url = `https://api.darksky.net/forecast/${api_key}/${lat},${lon}/?units=si`;
     const weather_response = await fetch(weather_url);
