@@ -1,46 +1,66 @@
+const { now } = require('mongoose')
+
 const fetch = require('node-fetch'),
- moment = require('moment'),
+ moment = require('moment-timezone'),
  apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
- //configs = require('./esp32configs')
- 
-let _mqttClient
-let commBuff = []
+
+
+  // arrays ["sender"] holding devices information
+let lastComm = []
+let connectedDevices = []
 let registered = []
-let lastSavedPost = []
 const DB_SAVE_RATIO = 60
 const BUFF_MAXSIZE = 125
 const DISCONNECT_TIMOUT = 3
 
-/*
-
-{  status: 'Data server connected to iGrow database',  
-                message: 'Welcome to SBQC Data API  💻 🖱️ 🦾   Try 192.168.1.33:3003/.....', 
-                data: { APIs: "db, alarms, contact, devices, heartbeat, users" }   
-            }
-
-            */
 
 
 const esp32 = {
 
-/*
-    getConfig: async (espID) =>    
-    {  
-        return (configs.find( ({ id }) => id === espID ))  //  TODO : SHOULD BE dans la BD    TODO: return config[0] si espID pas trouvé
-    },*/
+
+
+    timeSince: (timeStamp, units="seconds") => 
+    {   
+        const last = moment(timeStamp)
+        const now = moment().tz('America/Toronto').format('YYYY-MM-DD HH:mm:ss');  // align format and timeZone wth timeStamp so .diff can work
+        return moment(now).diff(last, units)  //  difference between now and last timeStamp returned in the selected units  default=seconds
+    },
     
 
-    setConfig: (espID, mqttclient) => 
+
+    setConfig: async (espID, mqttclient) => 
     {
+
+          /*
+        const devProfile = await fetch(apiUrl + '/profiles/:' + deviceId); 
+        //const profile = await devProfile.json()
+        console.log("Get registered profiles", devProfile)
+
+
+        //const rawResponse = await fetch(apiUrl + '/devices/:' + deviceId,  { method: 'PATCH', headers: { "Content-type": "application/json" }, body: JSON.stringify(data)    }); 
+        const rawResponse = await fetch(apiUrl + '/devices/:' + deviceId) 
+        const r = await rawResponse.json() // const r = await rawResponse.text()
+      
+        if(r.status === 'success')  console.log('Registering: ', r.data.id)  
+        else                        console.log(r.status, r.message ) 
+
+*/
+
+
         const found = registered.find(element => element.id == espID);
-        const config = found.config   
-       
+        const res = await fetch(apiUrl + '/profile/' + found.profileName) 
+    const p = await res.json()
+        console.log('Fetching profile: ' , found.profileName, p)
+
+        const config = p.config   
+        console.log('Retreving config from DB for: ' + espID + '\nConfig: ' + config)
         const c1 =  JSON.stringify(config)
         //console.log('Sending config to esp: ', espID, 'config: ', c1)
 
         const t = 'esp32/' + espID + '/config'
         mqttclient.publish(t, c1 )
     },
+
 
 
     setAlarms: async(espID, mqttclient) => 
@@ -52,6 +72,7 @@ const esp32 = {
             mqttclient.publish('esp32/' + espID + '/io/nightfall',"" + als.io + ":" + moment(als.tStop).format('HH:mm:ss'))
         }
     },
+
 
 
     saveEspPost: async (data) =>
@@ -66,178 +87,157 @@ const esp32 = {
         catch (err) { console.log(err) }
     },
 
-    register: async (deviceId) =>
-    {
-        let data
-        if(deviceId == 'ESP_38990') {    //  TODO:    put config in db....
 
-            data = { type: 'esp32', id: deviceId, lastBoot: Date.now(), connected: true, zone: "atelier", 
-                            config: [
-                                    { io: "2",  mode: "IN", lbl: "A0",  isA: "0", pre: "none", name: "" } 
-                                    ,{ io: "4",  mode: "IN", lbl: "A1",  isA: "0", pre: "none", name: "" }
-                                    ,{ io: "35", mode: "INPULL", lbl: "A2",  isA: "1",  pre: "none" , name: ""}
-                                    ,{ io: "34", mode: "INPULL", lbl: "A3",  isA: "1",  pre: "none", name: "" }
-                                    ,{ io: "36", mode: "INPULL", lbl: "A4",  isA: "1",  pre: "none", name: "" }
-                                    ,{ io: "39", mode: "INPULL", lbl: "A5",  isA: "1",  pre: "none", name: "" }
-                        
-                                    ,{ io: "26", mode: "IN", lbl: "D2",  isA: "0", pre: "none", name: "" }
-                                    ,{ io: "25", mode: "IN", lbl: "D3",  isA: "0", pre: "none" , name: ""}
-                                    ,{ io: "17", mode: "IN", lbl: "D4",  isA: "0", pre: "none" , name: ""}
-                                    ,{ io: "16", mode: "IN", lbl: "D5",  isA: "0", pre: "none", name: "" }
-                                    ,{ io: "27", mode: "IN", lbl: "D6",  isA: "0", pre: "none" , name: ""}
-                                    ,{ io: "14", mode: "IN", lbl: "D7",  isA: "0", pre: "none", name: "" }
-                                    ,{ io: "12", mode: "IN", lbl: "D8",  isA: "0", pre: "none", name: "" }
-                                    ,{ io: "13", mode: "IN", lbl: "D9",  isA: "0", pre: "none", name: "" }
-                                        //DigitalInput _D10( 5, "D10");  //  GPIO 5 seems unusable
-                                    ,{ io: "23", mode: "IN", lbl: "D11", isA: "0", pre: "none" , name: ""}
-                                    ,{ io: "19", mode: "IN", lbl: "D12", isA: "0", pre: "none", name: "" }
-                                    ,{ io: "18", mode: "IN", lbl: "D13", isA: "0", pre: "none", name: "" } ]
-            }
 
-        }
-        else if(deviceId == 'ESP_15605') {
-
-            data = { type: 'esp32', id: deviceId, lastBoot: Date.now(), connected: true, zone: "atelier", 
-                                config:
-                                [  
-                                    { io: "34",  mode: "IN", lbl: "A2",  isA: "1", name: "" } 
-                                    ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1", name: ""}
-                                    ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0", name: "" }
-                                    ,{ io: "4", mode: "IN", lbl: "A5",  isA: "0", name: ""}
-                                    ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0", name: "" }
-                                        // ,{ io: "6", mode: "IN", lbl: "SPI",  isA: "0" }
-                                        // ,{ io: "18", mode: "IN", lbl: "MISO",  isA: "0" }
-                                        // ,{ io: "19", mode: "IN", lbl: "MOSI",  isA: "0" } 
-                                    ,{ io: "13", mode: "OUT", lbl: "A12",  isA: "0", name: "BUILTINLED" }
-                                    ,{ io: "14", mode: "IN", lbl: "D4",  isA: "0", name: "" }
-                                    ,{ io: "15", mode: "IN", lbl: "D5",  isA: "0", name: "" }
-                                    ,{ io: "13", mode: "IN", lbl: "D6",  isA: "0", name: ""}
-                                    ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0", name: ""} ]      
-                    }
-        
-        } else data = { type: 'esp32', id: deviceId, lastBoot: Date.now(), connected: true, zone: 'bureau',
-                                config: [  
-                                        { io: "34",  mode: "IN", lbl: "A2",  isA: "1", name: "" } 
-                                        ,{ io: "39",  mode: "IN", lbl: "A3",  isA: "1", name: "" }
-                                        ,{ io: "36", mode: "IN", lbl: "A4",  isA: "0", name: "" }
-                                        ,{ io: "4", mode: "OUT", lbl: "A5",  isA: "1", name: "Fan" }
-                                        ,{ io: "21", mode: "OUT", lbl: "D3",  isA: "0", name: "Lamp 1" }     
-                                        ,{ io: "14", mode: "OUT", lbl: "D4",  isA: "0", name: "Lamp 2" }
-                                        ,{ io: "15", mode: "OUT", lbl: "D5",  isA: "0", name: "Pump" }
-                                        ,{ io: "13", mode: "OUT", lbl: "D6",  isA: "0", name: "Heat" }
-                                        ,{ io: "35", mode: "IN", lbl: "D7",  isA: "0", name: "" } 
-                                        ,{ io: "13", mode: "OUT", lbl: "A12",  isA: "0", name: "BUILTINLED" }  ] 
-                                
-                    }
-        
-
-        
-
-        const option = { method: 'PATCH', headers: { "Content-type": "application/json" }, body: JSON.stringify(data)    }
-    
+    register: async (device) =>
+    {     
         try {
-            const rawResponse = await fetch(apiUrl + '/devices/:' + deviceId, option); 
+            
+            const rawResponse = await fetch(apiUrl + '/device/' + device.id,  { method: 'PATCH', headers: { "Content-type": "application/json" }, body: JSON.stringify( { 'id': device.id, 'lastBoot': device.lastBoot , 'profileName': device.profileName, 'type': device.type, 'zone': device.zone })    }); 
             const r = await rawResponse.json() // const r = await rawResponse.text()
           
-            if(r.status === 'success')  {  console.log('Registering: ', r.data.id)  } else console.log(r.status, r.message ) 
-            registered = await esp32.getRegistered()
-            console.log('updating registered:', registered.id)  //
+            if(r.status === 'success')  console.log('Welcome : ', r.data.id)  
+            else                        console.log(r.status, r.message )
+              
+
           
 
+           /* const devProfile = await fetch(apiUrl + '/profile/:' + device.id); 
+            const profile = await devProfile.json()
+            console.log("Get registered profile:\n", profile.data)*/
 
+            registered = await esp32.getRegistered()  //  actualize registered global variable
         }
         catch (err) { console.log(err) }
     },
 
+
+
     getRegistered: async () =>
     {    
-        try {
+        try {  
             const rawResponse = await fetch(apiUrl + '/devices'); 
             const r = await rawResponse.json() // const r = await rawResponse.text()
-            registered = r.data
            
-            if(r.status === 'success')  {  console.log('Registered list: ', r.data)  } else console.log(r.status, r.message ) 
-            registered = esp32.validConnected()  // make sure connections are known if its called before first auto actualization of connected
+            if(r.status === 'success')  {} //console.log('Registered list: ', r.data.map((dev)=>{ const id = dev.id; const zone = dev.zone; const ret = {id,zone}; return ( ret ) }))  
+            else                        console.log(r.status, r.message) 
+            
+            registered = r.data
+
             return registered
         }
         catch (err) { console.log('Error fetching registered. Is Data API online?', err); }
-    },
-
-    
-    timeSince: (timeStamp, units="second") => {   
-        const now = moment()
-        const secs = now.diff(timeStamp, units);
-        return secs
-    },
-
-    validConnected: () => {
-        registered.forEach((device) => {
-            if(commBuff[device.id]) {
-                console.log(commBuff[device.id][commBuff[device.id].length -1])
-                const last = moment(commBuff[device.id][commBuff[device.id].length -1].time)
-                const seconds = esp32.timeSince(last, 'second') 
-            // console.log(seconds)  
-                if(seconds >= DISCONNECT_TIMOUT) {
-                    if (device.connected) console.log(device.id + ' disconnected!!')
-                    device.connected = false  //  device in commBuff but not posted since timeout
-                
-                    _mqttClient.publish('esp32/' + device.id + '/disconnected', JSON.stringify(device) )
-
-                } 
-                else device.connected = true
-            }
-            else device.connected = false   //   device not in commBuff
-        })
-        if(registered == null) {console.log('correcting registered'); registered = [];}
-        return registered
-    },
-
-    setConnectedValidation: (mqttClient, interval) => {
-
-        _mqttClient = mqttClient
-        setInterval(esp32.validConnected, interval)
-
     },
 
 
 
     receiveMessage: async (data) =>
     {
-        
-        if(commBuff[data.sender])  { 
-            const last = moment(lastSavedPost[data.sender].time).format('YYYY-MM-DD HH:mm:ss') 
-            const seconds = esp32.timeSince(last, 'second')     
-            const now = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss') 
-           
-          //  console.log(now + " - " + last + " = " + seconds)
-                  
-            commBuff[data.sender].push(data)
-
-            if(seconds >= DB_SAVE_RATIO) {
-                lastSavedPost[data.sender] = data
-                await esp32.saveEspPost(data)
-            }
+        if(lastComm[data.sender])  {    
+            lastComm[data.sender] = data
         }
         else {    
             //  First message received for this sender
-            console.log("device connected: ", data.sender)
-           
-         
-            commBuff[data.sender] = []
-            commBuff[data.sender].push(data)
-            lastSavedPost[data.sender] = data
-            await esp32.saveEspPost(data)
+            console.log('\n' + data.sender + ' connected  :)' )
+            connectedDevices[data.sender] = true 
+            lastComm[data.sender] = data
         }
-        //console.log(commBuff[data.sender].length)
-        //console.log(commBuff)
+    },
+
+
+
+    validConnected: async () => 
+    {
+        // if(registered == null) {console.log('correcting registered'); registered = [];}   //  TODO : comment ca pourrait etre null...  c'est init a []
+       
+        await esp32.getRegistered() 
+
+        registered.forEach((device) => {
+            if(lastComm[device.id]) {   
+                
+                const last = moment(lastComm[device.id].time).format('YYYY-MM-DD HH:mm:ss');
+                const seconds = esp32.timeSince(last);
         
-        //  will push out oldest post from buffer when max buffer topped
-        if(commBuff[data.sender].length >= BUFF_MAXSIZE) commBuff[data.sender].shift()
+                //const now = moment().tz('America/Toronto').format('YYYY-MM-DD HH:mm:ss');        
+                //console.log(now + " - " + last + " = " + seconds + " sec")  
+
+                if(seconds >= DISCONNECT_TIMOUT) {   //  device in commBuff but not posted since timeout delay
+                    if (connectedDevices[device.id] === true) console.log('\n' + device.id + ' disconnected!!  :(')  
+                    connectedDevices[device.id] = false  
+                    lastComm[device.id] = null 
+                } 
+                else connectedDevices[device.id] = true //  device in commBuff posted lately
+            }
+            else connectedDevices[device.id] = false   //   device not in commBuff
+        })
+    },
+
+
+
+    setConnectedValidation: (interval) => {     setInterval(esp32.validConnected, interval)    },
+
+
+
+
+    /*****************************
+     * 
+     *  MQTT Message handling
+     * 
+     *****************************/
+
+
+
+    msgHandler: async (topic, message, mqttclient) =>
+    {
+        /*    {  status: , message: 'Welcome to SBQC Data API  💻 🖱️ 🦾 ', id: 'ESP_XXXX ',  data: {  }   }  */
+        
+       
+        if (topic == 'esp32/register') //  message is an arrayBuffer and contains ESP_ID
+        {
+            //const espdata = JSON.parse(espID);
+            const parsedMsg =  JSON.parse(message);
+            console.log("Topic: ", topic, "  msg: ", parsedMsg.message )
+            await esp32.register(parsedMsg)
+            return true
+        }
+        else if (topic == 'esp32/ioConfig') 
+        {
+            const parsedMsg =  JSON.parse(message);
+            console.log("Topic: ", topic, "  msg: ", parsedMsg.message )
+            
+            esp32.setConfig(parsedMsg.id, mqttclient)
+
+           // await esp32.setAlarms(message, mqttclient)   //  TODO:  valider pkoi ca marche ici direct avec le buffer sans conversion string
+            return true
+        }
+        else if (topic == 'esp32/sensors') 
+        {
+            let msg = message.toString()
+            let data = JSON.parse(msg)
+            console.log(data)
+            if(data.action_type == 'btnBlue'  && data.value == '1') {   //  {"device":"ESP_15605", "io":"BLUE", "action_type":"btnBlue", "value": "1"}
+            // waterburst();  //  TODO :    a rendre solide...   architecture de merde...
+            }
+            return true
+        }
+        else if (topic.indexOf('esp32/alive/') >= 0) 
+        { 
+            let heartbeat = JSON.parse(message)//  console.log("Message: ", heartbeat)
+            //esp32.saveEspPost(heartbeat)
+            await esp32.receiveMessage(heartbeat)
+            return true
+        }
+        else if (topic.indexOf('esp32/data/') >= 0) 
+        { 
+            let heartbeat = JSON.parse(message)//  console.log("Message: ", heartbeat)
+            //esp32.saveEspPost(heartbeat)
+            esp32.receiveMessage(heartbeat)
+            await esp32.saveEspPost(heartbeat)
+            return true
+        }
+        else { return false }  // did not handle the message
     }
-
 }
-
-
 
 
 module.exports = esp32

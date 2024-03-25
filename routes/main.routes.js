@@ -4,7 +4,7 @@ const fetch = require('node-fetch')
 const moment = require('moment')
 
 const esp32 = require('../esp32')
-const getMqtt = require('../serverMqtt').getMqttClient
+const getMqtt = require('../serverMqtt').getClient
 const Tools = require('../nodeTools')
 Tools.readFile("greetings.txt")
 
@@ -16,46 +16,47 @@ const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.USER, pass: pro
 
 ////   free routes
 
-router.get("/", async (req, res) => { 
-
-    console.log('Getting registered Esp32')
-    const registered = await esp32.getRegistered()
-    if(registered == null) { 
-        console.log('Could not fetch devices list. Is DataAPI online?') 
-        res.render('index',    { name: req.session.email }) 
-    } else {
-        console.log("Registered users:", registered)
-        res.render('iot', { mqttinfo: mqttinfo, regDevices: registered})
-    } 
-}) 
-
-
-router.get('/iot',  async (req, res) => {
-   
-    const registered = await esp32.getRegistered()
-    
-    const response = await fetch(apiUrl + '/devices')
-    const list = await response.json()
-    console.log(list)
-
-    res.render('iot', { mqttinfo: mqttinfo, regDevices: registered  })
-})
-
-
-router.get('/index',  async (req, res) => {  
-
-    const registered = await esp32.getRegistered()
-    res.render('iot', { mqttinfo: mqttinfo, regDevices: registered })
-})
-
 router.get("/iGrow", (req, res) => {  res.send('Hello')  })
 
 router.get('/empty', (req, res) => {  res.render('empty') })
 
 router.get('/cams',  (req, res) => {  res.render('cams')  })
 
-router.get('/device',  async (req, res) => {
-   
+
+
+router.get("/", async (req, res) => 
+{ 
+    console.log('Getting registered Esp32')
+    const registered = await esp32.getRegistered()
+    if(registered == null) { 
+        console.log('Could not fetch devices list. Is DataAPI online?') 
+        res.render('index',    { name: req.session.email }) 
+    } else {
+        console.log(registered.map((dev) => id = dev.id ))
+        res.render('iot', { mqttinfo: mqttinfo, regDevices: registered})
+    } 
+}) 
+
+
+
+router.get('/iot',  async (req, res) => 
+{ 
+    const registered = await esp32.getRegistered()
+    res.render('iot', { mqttinfo: mqttinfo, regDevices: registered  })
+})
+
+
+
+router.get('/index',  async (req, res) => 
+{  
+    const registered = await esp32.getRegistered()
+    res.render('iot', { mqttinfo: mqttinfo, regDevices: registered })
+})
+
+
+
+router.get('/device',  async (req, res) => 
+{
     try{
         const registered = await esp32.getRegistered()  
         if(!registered.length) {
@@ -74,23 +75,16 @@ router.get('/device',  async (req, res) => {
             console.log('Selected Device:', selDevice.id, selDevice.config[0])
     
             res.render('device', { mqttinfo: mqttinfo, devices: registered, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
-        }
-
-        
+        }  
     } catch(err) {
-        res.render('error', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
+            res.render('error', { mqttinfo: mqttinfo, devices: devices, selected: selectedDevice, device: selDevice, alarmList: alarmList, apiUrl: apiUrl, iGrowUrl: req.protocol + '://' + req.get('host')  })
     }
-
-   
-   
-
-   
 })
 
 
-router.get('/graphs',  async (req, res) => { 
 
-
+router.get('/graphs',  async (req, res) => 
+{ 
     const response = await fetch(apiUrl + "/devices")
     const result = await response.json()
     const list = result.data
@@ -105,8 +99,9 @@ router.get('/graphs',  async (req, res) => {
 })
 
 
-router.post('/selectDevice', async (req, res) => {
 
+router.post('/selectDevice', async (req, res) => 
+{
     req.session.selectedDevice = req.body.selected
     console.log('Receiving selection: ' , req.body.selected)
     req.session.save(async (err) => { 
@@ -114,12 +109,38 @@ router.post('/selectDevice', async (req, res) => {
        // console.log(req.session)
         res.redirect('/graphs')
     })
-
 })
 
 
-router.get('/settings',  async (req, res) => {
 
+router.get('/database',  async (req, res) =>
+ {
+    const response = await fetch(apiUrl+'/db/collectionList')
+    const list = await response.json()
+    console.log('Sending collection list to client: ', list)
+    res.render('database', {collectionList: JSON.stringify(list) })
+})
+
+
+
+
+
+//  Session validation & logged in routes    -  User will have a saved Session if logged in
+
+const hasSessionID = (req, res, next) => 
+{
+    console.log('Session: ', req.session)
+    if (!req.session.userToken) {
+        res.redirect('/login')
+    } else {
+        next()
+    }
+}
+
+
+
+router.get('/settings',  hasSessionID,  async (req, res) => 
+{
     const response = await fetch(apiUrl + "/users")
     const result = await response.json()
     const users = result.data
@@ -132,20 +153,21 @@ router.get('/settings',  async (req, res) => {
     const result3 = await response3.json()
     const alarms = result3.data
 
-    res.render('settings', {users: users, devices: devices, alarms: alarms})
-    
+    res.render('settings', {users: users, devices: devices, alarms: alarms})  
 })
 
 
 
-router.get('/database',  async (req, res) => {
-    const response = await fetch(apiUrl+'/db/collectionList')
-    const list = await response.json()
-    console.log('Sending collection list to client: ', list)
-    res.render('database', {collectionList: JSON.stringify(list) })
-})
 
-router.get('/weather/:latlon', async (req, res) => {
+
+
+
+
+
+//  TODO  - valider ce qui est obselete et ce qui toi etre mieux localiser dans le reste ci bas
+
+router.get('/weather/:latlon', async (req, res) => 
+{
     /* const latlon = req.params.latlon.split(',')
      const lat = latlon[0]
      const lon = latlon[1]
@@ -181,15 +203,12 @@ router.get('/weather/:latlon', async (req, res) => {
         air_quality: aq_data
     };
     res.json(data);
-
-
 })
 
 
 
-router.get('/deviceLatest/:esp',  async (req, res) => {
-
-
+router.get('/deviceLatest/:esp',  async (req, res) => 
+{
     let option = {
         method: 'GET',
         headers: {
@@ -234,13 +253,12 @@ router.get('/deviceLatest/:esp',  async (req, res) => {
     catch (err) {
         console.error(err)
     }
-
-
 })
 
 
-router.get('/data/:options',  async (req, res) => {
 
+router.get('/data/:options',  async (req, res) => 
+{
     const options = req.params.options.split(',')
     const samplingRatio = options[0]
     const espID = options[1]
@@ -263,12 +281,12 @@ router.get('/data/:options',  async (req, res) => {
         console.error(err)
         return res.status(400).send("Could not get data");
     }
-
 })
 
 
-router.post('/set_io', (req, res) => {
 
+router.post('/set_io', (req, res) => 
+{
     let msg = 'esp32/' + req.body.sender + '/io/' + req.body.io_id + '/' + (req.body.io_state === 'ON' ? 'on' : 'off')
     console.log('Setting IO: ' + msg)
     let mq = getMqtt()
@@ -280,11 +298,8 @@ router.post('/set_io', (req, res) => {
 
 
 
-
-
-
-router.route('/alarms/setAlarm').post(async (req, res) => { 
-
+router.route('/alarms/setAlarm').post(async (req, res) => 
+{ 
     console.log('post received: Set_alarm')
     //console.log(JSON.stringify(req.body))
 
@@ -322,18 +337,12 @@ router.route('/alarms/setAlarm').post(async (req, res) => {
         }
 
     }
-    catch (err) {
-        console.error(err)
-    }
+    catch (err) {  console.error(err)   }
 
     req.session.selectedDevice = als.espID
 
     res.redirect("/device")
-
 })
-
-
-
 
 
 module.exports = router;

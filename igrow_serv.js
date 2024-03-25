@@ -10,6 +10,7 @@ path = require('path'),
 cors = require('cors')/*,
 rateLimit = require('express-rate-limit')*/
 
+const mqtt = require('./serverMqtt')
 
 const app = express()
 app.set('view engine', 'ejs')
@@ -59,6 +60,7 @@ app
     .use(session(sessionOptions))
     .use(express.static(path.resolve(__dirname, 'public') )) 
     .use('/', require('./routes/main.routes.js')) 
+    .use('/login',    require('./routes/login.routes'))
     .use('/Projects',    serveIndex(path.resolve(__dirname, 'public/Projects'), {  'icons': true,  'stylesheet': 'public/css/indexStyles.css' } )) // use serve index to nav folder  (Attention si utiliser sur le public folder, la racine (/) du site sera index au lieu de html
 
 
@@ -70,10 +72,13 @@ app.listen(PORT, () => {
     })
 
 
+
+const esp32 = require('./esp32')
+esp32.setConnectedValidation(1000) //  check every X seconds if devices are still connected
+
 console.log("Launching Mqtt")
-require('./serverMqtt').initMqtt()
 
-
+mqtt.initMqtt(esp32.msgHandler)
 
 
 //  TODO:   si dataAPI réponds pas, redirect vers error page qui le mentionne
