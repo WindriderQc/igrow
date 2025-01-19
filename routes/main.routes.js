@@ -5,13 +5,35 @@ const moment = require('moment')
 
 const esp32 = require('../esp32')
 const getMqtt = require('../serverMqtt').getClient
-const Tools = require('../nodeTools')
-Tools.readFile("greetings.txt")
+const Tools = require('nodetools')
+//Tools.readFile("greetings.txt")
 
 
 const apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
 const mqttUrl = "ws://" + process.env.DATA_API_IP + ":" + process.env.MQTT_PORT 
 const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.USER, pass: process.env.PASS })
+
+const dataApiStatus = checkApi("Data API", apiUrl)
+
+async function checkApi(useName, apiurl) {
+    try {
+        const response = await fetch(apiurl);
+        console.log('Checkin API: ' + useName + ' - API url: ' + apiurl)
+        if (response.ok) {
+            console.log('API is online\n\n');
+            return true;
+        } else {
+            console.log('API is offline\n\n');
+            return false;
+        }
+    } catch (error) {
+        console.log('API is offline\n\n');
+        return false;
+    }
+}
+
+
+
 
 
 ////   free routes
@@ -33,7 +55,7 @@ router.get("/", async (req, res) =>
         res.render('index',    { name: req.session.email }) 
     } else {
         console.log(registered.map((dev) => id = dev.id ))
-        res.render('iot', { mqttinfo: mqttinfo, regDevices: registered})
+        res.render('iot', { mqttinfo: mqttinfo, regDevices: registered, dataApiStatus: dataApiStatus  })
     } 
 }) 
 

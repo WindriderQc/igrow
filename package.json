@@ -1,5 +1,5 @@
 {
-  "name": "iGrow",
+  "name": "igrow",
   "version": "1.0.0",
   "description": "",
   "main": "igrow_serv.js",
@@ -31,10 +31,11 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.45",
     "mongodb": "^3.7.2",
-    "mongoose": "^5.13.13",
+    "mongoose": "^8.9.5",
     "mqtt": "^4.2.6",
     "node-fetch": "^2.6.1",
     "nodemon": "^3.1.0",
+    "nodetools": "github:windriderqc/nodeTools",
     "serve-index": "^1.9.1"
   }
 }

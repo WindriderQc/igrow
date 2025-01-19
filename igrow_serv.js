@@ -81,7 +81,32 @@ console.log("Launching Mqtt")
 mqtt.initMqtt(esp32.msgHandler)
 
 
-//  TODO:   si dataAPI réponds pas, redirect vers error page qui le mentionne
+async function checkApi(useName, apiurl) {
+    try {
+        console.log('Checkin API: ' + useName + ' - API url: ' + apiurl)
+        const response = await fetch(apiurl);
+        console.log('API response: ', response)
+        if (response.ok) {
+            console.log('\n\n' + useName + ' API is online\n\n');
+        } else {
+            console.log('\n\n' + useName + ' API is offline\n\n');
+        }
+    } catch (error) {
+        console.log('\n\n' + useName + ' API is offline\n\n');
+    }
+}
+
+const apiUrl = process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
+const mqttUrl = process.env.MQTT_IP
+
+
+// Call the function and handle the promise
+checkApi("Data API", apiUrl).then(() => {
+    console.log('Check complete');
+}).catch((error) => {
+    console.error('Error checking API:', error);//  TODO:   si dataAPI réponds pas, redirect vers error page qui le mentionne
+});
+
 
 
 
