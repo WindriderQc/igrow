@@ -3,7 +3,7 @@ require('dotenv').config()
 const mqtt = require('mqtt'),
  assert = require('assert'),
  //fetch = require('node-fetch'),
- mqttServerIp = process.env.DATA_API_IP,
+ mqttServerUrl = process.env.MQTT_SERVER_URL,
  mqttUser = process.env.USER,
  mqttPass = process.env.PASS
 
@@ -26,7 +26,7 @@ function initMqtt(msgHandler)
 
     console.log('Attempting MQTT connection...')
 
-    let mqttclient = mqtt.connect("mqtt://" + mqttServerIp, mqttOptions)
+    let mqttclient = mqtt.connect( mqttServerUrl, mqttOptions)
 
 
    

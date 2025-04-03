@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -266,7 +266,8 @@ function sendSetIO()
 
 
 console.log('attempting mqtt connect...')
-const mqClient = mqtt.connect(mqttlogin.url, { rejectUnauthorized: false, username: mqttlogin.user, password: mqttlogin.pass })   //TODO  hardcoded IP + check...  using ws to connect not ssl secure //  TODO : NOT SAFE!!  Option User/Pass  visible dans la console....   utiliser le header pour ca?  ou mettre en SSL
+//const mqClient = mqtt.connect(mqttlogin.url, { rejectUnauthorized: false, username: mqttlogin.user, password: mqttlogin.pass })   //TODO  hardcoded IP + check...  using ws to connect not ssl secure //  TODO : NOT SAFE!!  Option User/Pass  visible dans la console....   utiliser le header pour ca?  ou mettre en SSL
+const mqClient = mqtt.connect('wss://mqtt.specialblend.ca');
 console.log('mqtt client:', mqClient)
 
 mqClient.publish('esp32', 'Browser Client subscribing...')

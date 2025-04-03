@@ -18,23 +18,35 @@ app.set('view engine', 'ejs')
 
 
 //  TODO : mettre un indicateur dans le top menu indiquant si le DataAPI est connecté ou non.
+const apiUrl =process.env.DATA_API_URL + (process.env.DATA_API_PORT ? ":" + process.env.DATA_API_PORT : "") //let dAPIUrl = "https://data.specialblend.ca"
 
-
-
-
-
-const mongoStore = new MongoDBStore({  
-    //uri: "mongodb+srv://" + process.env.USER + ":" + process.env.PASS + "@cluster0-b2xaf.mongodb.net/test?retryWrites=true&w=majority",  //  Cloud Database  //      Cloud DB is used for sessions since local DB only accept request from local source (127.0.0.1)
-    uri: "mongodb://" + process.env.USER + ":" + process.env.PASS + "@" + process.env.DATA_API_IP + ":" + process.env.MONGO_PORT + "/iGrow?retryWrites=true&w=majority&authMechanism=DEFAULT&authSource=admin" ,    //  Local Database   
-    collection: 'mySessions', 
-    connectionOptions: {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        // serverSelectionTimeoutMS: 10000
+async function checkApi(useName, apiurl) {
+    try {
+        console.log('Checkin API: ' + useName + ' - API url: ' + apiurl)
+        const response = await fetch(apiurl);
+        console.log('API response: ', response)
+        if (response.ok) {
+            console.log('\n\n' + useName + ' API is online\n\n');
+        } else {
+            console.log('\n\n' + useName + ' API is offline\n\n');
+        }
+    } catch (error) {
+        console.log('\n\n' + useName + ' API is offline\n\n');
     }
-}, (err) => { if(err) console.log( 'MongoStore connect error: ', err) } );
+}
 
+
+// Call the function and handle the promise
+checkApi("Data API", apiUrl).then(() => {
+    console.log('Check complete');
+}).catch((error) => {
+    console.error('Error checking API:', error);//  TODO:   si dataAPI réponds pas, redirect vers error page qui le mentionne
+});
+
+
+const mongoStore = new MongoDBStore({ uri: process.env.MONGO_CLOUD, collection: 'mySessions'}, (err) => { if(err) console.log( 'MongoStore connect error: ', err) } );
 mongoStore.on('error', (error) => console.log('MongoStore Error: ', error) );
+
 
 
 const sessionOptions = {
@@ -81,31 +93,6 @@ console.log("Launching Mqtt")
 mqtt.initMqtt(esp32.msgHandler)
 
 
-async function checkApi(useName, apiurl) {
-    try {
-        console.log('Checkin API: ' + useName + ' - API url: ' + apiurl)
-        const response = await fetch(apiurl);
-        console.log('API response: ', response)
-        if (response.ok) {
-            console.log('\n\n' + useName + ' API is online\n\n');
-        } else {
-            console.log('\n\n' + useName + ' API is offline\n\n');
-        }
-    } catch (error) {
-        console.log('\n\n' + useName + ' API is offline\n\n');
-    }
-}
-
-const apiUrl = process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
-const mqttUrl = process.env.MQTT_IP
-
-
-// Call the function and handle the promise
-checkApi("Data API", apiUrl).then(() => {
-    console.log('Check complete');
-}).catch((error) => {
-    console.error('Error checking API:', error);//  TODO:   si dataAPI réponds pas, redirect vers error page qui le mentionne
-});
 
 
 

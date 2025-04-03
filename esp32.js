@@ -1,9 +1,10 @@
-const { now } = require('mongoose')
+const { now } = require('mongoose')  //  TODO investigate why now gets created as a function in mongoose!?
+const fetch = require('node-fetch')  //  TODO investigate why fetch is working this way here but must be dynamically declare in other codes.....
+const moment = require('moment-timezone')
 
-const fetch = require('node-fetch'),
- moment = require('moment-timezone'),
- apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
+console.log(now())
 
+const apiUrl =process.env.DATA_API_URL + (process.env.DATA_API_PORT ? ":" + process.env.DATA_API_PORT : "") //let dAPIUrl = "https://data.specialblend.ca"
 
   // arrays ["sender"] holding devices information
 let lastComm = []
@@ -238,7 +239,6 @@ const esp32 = {
         else { return false }  // did not handle the message
     }
 }
-
 
 module.exports = esp32
 //module.exports = {commBuff, registered}

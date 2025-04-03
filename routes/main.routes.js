@@ -9,11 +9,12 @@ const Tools = require('nodetools')
 //Tools.readFile("greetings.txt")
 
 
-const apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
-const mqttUrl = "ws://" + process.env.DATA_API_IP + ":" + process.env.MQTT_PORT 
-const mqttinfo = JSON.stringify({url: mqttUrl, user: process.env.USER, pass: process.env.PASS })
+const apiUrl =process.env.DATA_API_URL + (process.env.DATA_API_PORT ? ":" + process.env.DATA_API_PORT : "") //let dAPIUrl = "https://data.specialblend.ca"
+//const apiUrl = "http://" + process.env.DATA_API_IP + ":" + process.env.DATA_API_PORT
+//const mqttUrl = "ws://" + process.env.DATA_API_URL + ":" + process.env.MQTT_PORT 
+const mqttWSUrl = process.env.MQTT_SERVER_WS
+const mqttinfo = JSON.stringify({url: mqttWSUrl, user: process.env.USER, pass: process.env.PASS })
 
-const dataApiStatus = checkApi("Data API", apiUrl)
 
 async function checkApi(useName, apiurl) {
     try {
@@ -32,6 +33,7 @@ async function checkApi(useName, apiurl) {
     }
 }
 
+const dataApiStatus = checkApi("Data API", apiUrl)
 
 
 
